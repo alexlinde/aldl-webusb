@@ -1,17 +1,19 @@
 # ALDL WebUSB Interface
 
-A modern web interface for reading ALDL (Assembly Line Diagnostic Link) data from GM vehicles using WebUSB.
+A modern web interface for reading GM's [Assembly Line Diagnostic Link](https://en.wikipedia.org/wiki/ALDL) 160 baud interface. This tool is designed to work with an FTDI FT232R-based ALDL cable (like those from [aldlcable.com](http://aldlcable.com/)).
+
+I bought a [Howell TBI kit](https://howellefi.com/product/tbi-kit-1981-86-cj-4-2l-emissions-legal/) for my 88 Jeep YJ which included a GM 1227747 ECU. This pre-dates OBD2 and includes an ALDL 12-pin interface that transmits serial-ish data at 160 baud. While you can read the MALF codes with a paperclip, I wanted to be able to see and plot the data from the sensors to diagnose the issue and check everything was running smoothly, 
+
+If you're in the same situation, visit https://alexlinde.github.io/aldl-webusb/ to use the tool live.
 
 ## Features
 
-- Direct USB connection to ALDL interface hardware using WebUSB API
+- Direct connection to ALDL interface using WebUSB from a browser
 - Real-time display of engine sensor data and diagnostic codes
-- Support for GM 160 baud ALDL protocol (Mode A058)
-- Test data playback mode for development
-- Responsive grid-based data visualization
-- Dark/light theme support
-
-## Getting Started
+- Support for GM 160 baud ALDL protocol (Mode A058, for the Howell / GM 1227747 ECU)
+- Test data playback mode for development - you can log using [aldl-logger](https://github.com/alexlinde/aldl-logger)
+- RPM / MAP (kPA) grid for O2, INT and BLM
+- Dark/light theme support :)
 
 ### Prerequisites
 
