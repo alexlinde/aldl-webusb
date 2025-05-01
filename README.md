@@ -4,7 +4,7 @@ A modern web interface for reading GM's [Assembly Line Diagnostic Link](https://
 
 I bought a [Howell TBI kit](https://howellefi.com/product/tbi-kit-1981-86-cj-4-2l-emissions-legal/) for my 88 Jeep YJ which included a GM 1227747 ECU. This pre-dates OBD2 and includes an ALDL 12-pin interface that transmits serial-ish data at 160 baud. While you can read the MALF codes with a paperclip, I wanted to be able to see and plot the data from the sensors to diagnose the issue and check everything was running smoothly, 
 
-If you're in the same situation, visit https://alexlinde.github.io/aldl-webusb/ to use the tool live.
+If you're in the same situation, visit https://alexlinde.github.io/aldl-webusb/ to use the tool live. There's a [test log file](https://github.com/alexlinde/aldl-webusb/raw/refs/heads/main/test/aldl_log_20250430_193619.json) if you want to simulate it running. 
 
 ## Features
 
