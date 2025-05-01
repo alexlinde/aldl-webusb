@@ -1,0 +1,181 @@
+[
+  {
+    "id": 1,
+    "name": "MW2",
+    "scale": 1,
+    "unit": "",
+    "round": 0,
+    "description": "Mode 2 Command"
+  },
+  {
+    "id": 2,
+    "name": "PROMIDMSB",
+    "scale": 1,
+    "unit": "",
+    "round": 0,
+    "description": "PROM ID Most Significant Byte"
+  },
+  {
+    "id": 3,
+    "name": "PROMIDLSB",
+    "scale": 1,
+    "unit": "",
+    "round": 0,
+    "description": "PROM ID Least Significant Byte"
+  },
+  {
+    "id": 4,
+    "name": "IAC",
+    "scale": 1,
+    "unit": "cnt",
+    "round": 0,
+    "description": "Idle Air Control Position"
+  },
+  {
+    "id": 5,
+    "name": "CT",
+    "scale": 1,
+    "unit": "°C",
+    "round": 0,
+    "description": "Coolant Temperature"
+  },
+  {
+    "id": 6,
+    "name": "MPH",
+    "scale": 1,
+    "unit": "MPH",
+    "round": 0,
+    "description": "Vehicle Speed"
+  },
+  {
+    "id": 7,
+    "name": "MAP-V",
+    "scale": 0.0196,
+    "unit": "V",
+    "round": 2,
+    "description": "Manifold Absolute Pressure Voltage"
+  },
+  {
+    "id": 7,
+    "name": "MAP-P",
+    "scale": 0.3690,
+    "unit": "kPa",
+    "offset": 10.3540,
+    "round": 0,
+    "description": "Manifold Absolute Pressure"
+  },
+  {
+    "id": 8,
+    "name": "RPM",
+    "scale": 25,
+    "unit": "rpm",
+    "round": 0,
+    "description": "Engine Speed"
+  },
+  {
+    "id": 9,
+    "name": "TPS-V",
+    "scale": 0.0196,
+    "unit": "V",
+    "round": 2,
+    "description": "Throttle Position Sensor Voltage"
+  },
+  {
+    "id": 9,
+    "name": "TPS-%",
+    "scale": 1,
+    "unit": "%",
+    "range_low": 24,
+    "range_high": 225,
+    "round": 0,
+    "description": "Throttle Position Percentage"
+  },
+  {
+    "id": 10,
+    "name": "INT",
+    "scale": 1,
+    "unit": "",
+    "round": 0,
+    "description": "Integration Value"
+  },
+  {
+    "id": 11,
+    "name": "O2",
+    "scale": 4.34,
+    "unit": "mV",
+    "round": 0,
+    "description": "Oxygen Sensor Voltage"
+  },
+  {
+    "id": 12,
+    "name": "MALFFLG1",
+    "scale": 1,
+    "unit": "",
+    "round": 0,
+    "description": "Malfunction Flag 1"
+  },
+  {
+    "id": 13,
+    "name": "MALFFLG2",
+    "scale": 1,
+    "unit": "",
+    "round": 0,
+    "description": "Malfunction Flag 2"
+  },
+  {
+    "id": 14,
+    "name": "MALFFLG3",
+    "scale": 1,
+    "unit": "",
+    "round": 0,
+    "description": "Malfunction Flag 3"
+  },
+  {
+    "id": 15,
+    "name": "MWAF1",
+    "scale": 1,
+    "unit": "",
+    "round": 0,
+    "description": "Memory Word Air Flow 1"
+  },
+  {
+    "id": 16,
+    "name": "VOLT",
+    "scale": 0.1,
+    "unit": "V",
+    "round": 1,
+    "description": "Battery Voltage"
+  },
+  {
+    "id": 17,
+    "name": "MCU2IO",
+    "scale": 1,
+    "unit": "",
+    "round": 0,
+    "description": "MCU2 Input/Output Status"
+  },
+  {
+    "id": 18,
+    "name": "OLDPA3",
+    "scale": 1,
+    "unit": "cnt",
+    "round": 0,
+    "description": "Old Parameter 3"
+  },
+  {
+    "id": 19,
+    "name": "BLM",
+    "scale": 1,
+    "unit": "",
+    "round": 0,
+    "description": "Block Learn Multiplier"
+  },
+  {
+    "id": 20,
+    "name": "O2_CNT",
+    "scale": 1,
+    "unit": "cnt",
+    "round": 0,
+    "description": "O2 Sensor Cross Counts"
+  }
+]

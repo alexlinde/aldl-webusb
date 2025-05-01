@@ -1,0 +1,83 @@
+{
+  "MW2": {
+    "name": "MODE WORD 2",
+    "bits": [
+      { "bit": 0, "name": "ROAD SPEED PULSE OCCURRED" },
+      { "bit": 1, "name": "ESC 43B READY FOR SECOND PE" },
+      { "bit": 2, "name": "REFERENCE PULSE OCCURRED", "description": "1 = DISTRIBUTOR PULSE RECEIVED" },
+      { "bit": 3, "name": "DIAGNOSTIC SWITCH IN FACTORY TEST POSITION (3.9K)"},
+      { "bit": 4, "name": "DIAGNOSTIC SWITCH IN DIAGNOSTIC POSITION (0 OHMS)"},
+      { "bit": 5, "name": "DIAGNOSTIC SWITCH IN ALDL POSITION (10k)"},
+      { "bit": 6, "name": "1ST TIME IDLE FLAG", "description": "0 = FIRST TIME" },
+      { "bit": 7, "name": "IDLE FLAG", "description": "1=TPS < KISTPSI & MPH < KIDLMPH" }
+    ]
+  },
+  "MALFFLG1": {
+    "name": "MALFUNCTION FLAG 1",
+    "type": "MALF",
+    "bits": [
+      { "bit": 0, "name": "MALF CODE 24 - VEHICLE SPEED SENSOR"},
+      { "bit": 1, "name": "MALF CODE 23"},
+      { "bit": 2, "name": "MALF CODE 22 - THROTTLE POSITION SENSOR LOW"},
+      { "bit": 3, "name": "MALF CODE 21 - THROTTLE POSITION SENSOR HIGH"},
+      { "bit": 4, "name": "MALF CODE 15 - COOLANT SENSOR LOW"},
+      { "bit": 5, "name": "MALF CODE 14 - COOLANT SENSOR HIGH"},
+      { "bit": 6, "name": "MALF CODE 13 - OXYGEN SENSOR"},
+      { "bit": 7, "name": "MALF CODE 12 - NO REFERENCE PULSES"}
+    ]
+  },
+  "MALFFLG2": {
+    "name": "MALFUNCTION FLAG 2",
+    "type": "MALF",
+    "bits": [
+      { "bit": 0, "name": "MALF CODE 42 - ELECTRONIC SPARK TIMING MONITOR ERROR"},
+      { "bit": 1, "name": "MALF CODE 41"},
+      { "bit": 2, "name": "MALF CODE 35"},
+      { "bit": 3, "name": "MALF CODE 34 - MAP SENSOR LOW"},
+      { "bit": 4, "name": "MALF CODE 33 - MAP SENSOR HIGH"},
+      { "bit": 5, "name": "MALF CODE 32 - EXHAUST GAS RECIRCULATION FAILURE"},
+      { "bit": 6, "name": "MALF CODE 31 - GOVERNOR FAILURE"},
+      { "bit": 7, "name": "MALF CODE 25"}
+    ]
+  },
+  "MALFFLG3": {
+    "name": "MALFUNCTION FLAG 3",
+    "type": "MALF",
+    "bits": [
+      { "bit": 0, "name": "MALF CODE 55 - ADU ERROR"},
+      { "bit": 1, "name": "MALF CODE 54 - FUEL PUMP RELAY FAILURE"},
+      { "bit": 2, "name": "MALF CODE 53"},
+      { "bit": 3, "name": "MALF CODE 52 - CAL PACK MISSING"},
+      { "bit": 4, "name": "MALF CODE 51 - PROM ERROR"},
+      { "bit": 5, "name": "MALF CODE 45 - OXYGEN SENSOR RICH"},
+      { "bit": 6, "name": "MALF CODE 44 - OXYGEN SENSOR LEAN"},
+      { "bit": 7, "name": "MALF CODE 43 - ELECTRONIC SPARK CONTROL FAILURE"}
+    ]
+  },
+  "MWAF1": {
+    "name": "MODE WORD A/F 1",
+    "bits": [
+      { "bit": 0, "name": "CLEAR FLOOD FLAG", "description": "1 = CRANKED IN C/FLOOD" },
+      { "bit": 1, "name": "LEARN CONTROL ENABLE FLAG", "description": "1 = ENABLE STORE" },
+      { "bit": 2, "name": "LOW BATTERY", "description": "1 = LOW" },
+      { "bit": 3, "name": "4-3 DOWNSHIFT FOR TCC UNLOCK", "description": "0: No downshift, 1: 4-3 downshift for TCC unlock" },
+      { "bit": 4, "name": "ASYNCHRONOUS FLAG", "description": "0: Synchronous operation, 1: Asynchronous operation" },
+      { "bit": 5, "name": "OLD HIGH GEAR FLAG", "description": "0 = HIGH GEAR LAST TIME" },
+      { "bit": 6, "name": "RICH LEAN FLAG", "description": "1 = RICH  0 = LEAN" },
+      { "bit": 7, "name": "CLOSED LOOP FLAG", "description": "1 = CLOSED LOOP" }
+    ]
+  },
+  "MCU2IO": {
+    "name": "MCU2 I/O",
+    "bits": [
+      { "bit": 0, "name": "AIR SWITCH", "description": "1 = SOLENOID ENGAGED" },
+      { "bit": 1, "name": "AIR DIVERT", "description": "1 = SOLENOID ENGAGED" },
+      { "bit": 2, "name": "OF3 A/C", "description": "1 = A/C DISABLED" },
+      { "bit": 3, "name": "TCC", "description": "1 = TCC LOCKED" },
+      { "bit": 4, "name": "PARK NEUTRAL", "description": "0 = DRIVE" },
+      { "bit": 5, "name": "HIGH GEAR", "description": "0 = SWITCH OPEN" },
+      { "bit": 6, "name": "FRTJ (NOT USED)"},
+      { "bit": 7, "name": "AIR CONDITIONER", "description": "0 = A/C REQUESTED" }
+    ]
+  }
+} 
