@@ -140,20 +140,22 @@
 
 .pid-toggle-buttons button {
   padding: 0.5rem 1rem;
-  border: none;
+  border: 2px solid;
   border-radius: 4px;
   cursor: pointer;
   background-color: var(--button-bg);
   color: var(--button-text);
+  outline: none;
+}
+
+.pid-toggle-buttons button:focus {
+  outline: none;
+  box-shadow: none;
 }
 
 .pid-toggle-buttons button.active {
   background-color: var(--button-active-bg);
   color: var(--button-active-text);
-}
-
-.pid-toggle-buttons button.selected {
-  border: 2px solid #4caf50;
 }
 
 .bit-fields-table tr.selected {
