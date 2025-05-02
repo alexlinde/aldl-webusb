@@ -1,5 +1,5 @@
 import { FC, useState, useEffect } from 'react'
-import { ProcessedFrame } from '../types/aldl'
+import { Signal, ProcessedFrame } from '../types/aldl'
 import { Line } from 'react-chartjs-2'
 import {
   Chart as ChartJS,
@@ -42,9 +42,27 @@ interface PIDData {
 }
 
 const COLORS = [
-  '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
-  '#FF9F40', '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'
+  '#FF6B6B', // darker pastel red
+  '#4ECDC4', // darker pastel green
+  '#45B7D1', // darker pastel blue
+  '#FFD93D', // darker pastel yellow
+  '#FF85A1', // darker pastel pink
+  '#6BCB77', // darker pastel mint
+  '#4D96FF', // darker pastel sky blue
+  '#FF9F45', // darker pastel orange
+  '#9B72CF', // darker pastel purple
+  '#4ECB71', // darker pastel turquoise
+  '#FF6B8B', // darker pastel rose
+  '#95CD41', // darker pastel lime
+  '#6B66FF', // darker pastel indigo
+  '#FF9F6B', // darker pastel peach
+  '#4ECB9E'  // darker pastel seafoam
 ]
+
+interface PIDWithColor {
+  signal: Signal
+  color: string
+}
 
 const PIDChart: FC<PIDChartProps> = ({ frame }) => {
   const [pidData, setPidData] = useState<PIDData>({})
@@ -55,27 +73,53 @@ const PIDChart: FC<PIDChartProps> = ({ frame }) => {
   })
   const [timeRange, setTimeRange] = useState<{ min: number; max: number }>({ min: 0, max: 0 })
 
-  // Get PIDs that can be plotted (have min/max values)
-  const plottablePids = frame.signals.filter(signal => 
-    typeof signal.min === 'number' &&
-    typeof signal.max === 'number'
-  )
+  // Get PIDs that can be plotted (have min/max values) and assign colors
+  const plottablePids = frame.signals
+    .filter(signal => 
+      typeof signal.min === 'number' &&
+      typeof signal.max === 'number'
+    )
+    .map((signal, index) => ({
+      signal,
+      color: COLORS[index % COLORS.length]
+    }))
+
+  useEffect(() => {
+    // Update PID data when new signals arrive
+    const newPidData = { ...pidData }
+
+    // Skip adding data if timestamp is null (initial frame)
+    if (frame.timestamp !== null) {
+      plottablePids.forEach(({ signal }) => {
+        if (!newPidData[signal.name]) {
+          newPidData[signal.name] = []
+        }
+        newPidData[signal.name].push({
+          timestamp: frame.timestamp!,
+          value: signal.value,
+          normalizedValue: (signal.value - signal.min!) / (signal.max! - signal.min!) * 100
+        })
+      })
+
+      setPidData(newPidData)
+    }
+  }, [frame])
 
   useEffect(() => {
     // Update chart data when PID data changes
-    const datasets = Array.from(visiblePids).map((pidName, index) => {
+    const datasets = Array.from(visiblePids).map(pidName => {
       const data = pidData[pidName] || []
-      const signal = plottablePids.find(s => s.name === pidName)
+      const { signal, color } = plottablePids.find(p => p.signal.name === pidName)!
       return {
         label: pidName,
         data: data.map(point => ({
           x: point.timestamp,
           y: point.normalizedValue,
           originalValue: point.value,
-          unit: signal?.unit || ''
+          unit: signal.unit || ''
         })),
-        borderColor: COLORS[index % COLORS.length],
-        backgroundColor: COLORS[index % COLORS.length],
+        borderColor: color,
+        backgroundColor: color,
         tension: 0.1
       }
     })
@@ -102,28 +146,6 @@ const PIDChart: FC<PIDChartProps> = ({ frame }) => {
     })
   }, [pidData, visiblePids])
 
-  useEffect(() => {
-    // Update PID data when new signals arrive
-    const newPidData = { ...pidData }
-
-    // Skip adding data if timestamp is null (initial frame)
-    if (frame.timestamp !== null) {
-      console.log('New frame timestamp:', frame.timestamp)
-      plottablePids.forEach(signal => {
-        if (!newPidData[signal.name]) {
-          newPidData[signal.name] = []
-        }
-        newPidData[signal.name].push({
-          timestamp: frame.timestamp!,
-          value: signal.value,
-          normalizedValue: (signal.value - signal.min!) / (signal.max! - signal.min!) * 100
-        })
-      })
-
-      setPidData(newPidData)
-    }
-  }, [frame])
-
   const handleTogglePid = (pidName: string) => {
     setVisiblePids(prev => {
       const newSet = new Set(prev)
@@ -148,10 +170,6 @@ const PIDChart: FC<PIDChartProps> = ({ frame }) => {
             second: 'HH:mm:ss'
           }
         },
-        title: {
-          display: true,
-          text: 'Time'
-        },
         ticks: {
           display: true,
           maxRotation: 0,
@@ -174,7 +192,7 @@ const PIDChart: FC<PIDChartProps> = ({ frame }) => {
     },
     plugins: {
       legend: {
-        position: 'bottom'
+        display: false
       },
       tooltip: {
         callbacks: {
@@ -191,11 +209,18 @@ const PIDChart: FC<PIDChartProps> = ({ frame }) => {
   return (
     <div className="pid-chart-container">
       <div className="pid-toggle-buttons">
-        {plottablePids.map(signal => (
+        {plottablePids.map(({ signal, color }) => (
           <button
             key={signal.name}
             className={visiblePids.has(signal.name) ? 'active' : ''}
             onClick={() => handleTogglePid(signal.name)}
+            style={{
+              borderColor: color,
+              borderWidth: '2px',
+              borderStyle: 'solid',
+              backgroundColor: visiblePids.has(signal.name) ? color : 'transparent',
+              color: visiblePids.has(signal.name) ? 'white' : color
+            }}
           >
             {signal.name}
           </button>
