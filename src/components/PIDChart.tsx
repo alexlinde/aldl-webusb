@@ -1,5 +1,5 @@
 import { FC, useState, useEffect } from 'react'
-import { Signal, ProcessedFrame } from '../types/aldl'
+import { ProcessedFrame } from '../types/aldl'
 import { Line } from 'react-chartjs-2'
 import {
   Chart as ChartJS,
@@ -58,11 +58,6 @@ const COLORS = [
   '#FF9F6B', // darker pastel peach
   '#4ECB9E'  // darker pastel seafoam
 ]
-
-interface PIDWithColor {
-  signal: Signal
-  color: string
-}
 
 const PIDChart: FC<PIDChartProps> = ({ frame }) => {
   const [pidData, setPidData] = useState<PIDData>({})
