@@ -128,18 +128,15 @@ const PIDChart: FC<PIDChartProps> = ({ frame }) => {
     const allTimestamps = Object.values(pidData).flatMap(data => 
       data.map(point => point.timestamp)
     )
-    console.log('All timestamps:', allTimestamps)
     if (allTimestamps.length > 0) {
       const maxTimestamp = Math.max(...allTimestamps)
       const newTimeRange = {
         min: maxTimestamp - 60000, // 60 seconds ago
         max: maxTimestamp
       }
-      console.log('New time range:', newTimeRange)
       setTimeRange(newTimeRange)
     }
 
-    console.log('Datasets:', datasets)
     setChartData({
       labels: Array.from(new Set(allTimestamps)),
       datasets

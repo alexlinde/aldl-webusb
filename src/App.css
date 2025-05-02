@@ -27,18 +27,16 @@
 #root {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem;
 }
 
 .app {
-  min-height: 100vh;
   background-color: var(--bg-color);
 }
 
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: 1rem 1rem;
 }
 
 .title {
@@ -100,27 +98,26 @@
   margin-bottom: 1rem;
   color: var(--text-color);
   background-color: var(--bg-color);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
 .aldl-table th, .aldl-table td,
 .bit-fields-table th, .bit-fields-table td,
 .o2-grid-table th, .o2-grid-table td {
   border: 1px solid var(--border-color);
-  padding: 2px 6px;
+  padding: 0.125rem 0.375rem;
   text-align: center;
-  min-width: 36px;
 }
 
 .aldl-table th:first-child,
 .aldl-table td:first-child {
   text-align: right;
-  padding-right: 8px;
-  min-width: 100px;
+  padding-right: 0.5rem;
+  min-width: 4.25rem;
 }
 
 .aldl-table th:last-child {
-  min-width: 100px;
+  min-width: 4.25rem;
 }
 
 .aldl-table th, .bit-fields-table th, .o2-grid-table th {
@@ -188,7 +185,7 @@
   border-radius: 4px;
   background-color: var(--button-bg);
   color: var(--button-text);
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 .o2-grid-table td.highlight {
@@ -214,7 +211,7 @@
   cursor: pointer;
   background-color: var(--button-bg);
   color: var(--button-text);
-  font-size: 1.2rem;
+  font-size: 1rem;
   min-width: 40px;
 }
 
@@ -233,7 +230,7 @@
 }
 
 .o2-grid-table td {
-  min-width: 48px;
+  min-width: 1rem;
 }
 
 .controls {
@@ -275,4 +272,59 @@
 .chart-container {
   margin-top: 1rem;
   position: relative;
+}
+
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0.5rem;
+  }
+
+  .controls {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 0.5rem;
+  }
+
+  .connection-controls, .test-data-controls {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .grid {
+    gap: 1rem;
+  }
+
+  .pid-toggle-buttons {
+    justify-content: center;
+  }
+
+  .pid-toggle-buttons button {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.9rem;
+  }
+
+  .aldl-table, .bit-fields-table, .o2-grid-table {
+    font-size: 0.8rem;
+  }
+
+  .aldl-table th, .aldl-table td,
+  .bit-fields-table th, .bit-fields-table td,
+  .o2-grid-table th, .o2-grid-table td {
+    padding: 0.125rem 0.25rem;
+    min-width: 1rem;
+  }
+
+  .aldl-table th:first-child,
+  .aldl-table td:first-child {
+    min-width: 2.5rem;
+  }
+
+  .aldl-table th:last-child {
+    min-width: 2.5rem;
+  }
 }

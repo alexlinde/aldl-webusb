@@ -68,7 +68,7 @@ const App: FC = () => {
   }
 
   return (
-    <div className="app">
+    <div className="app">  
       <div className="container">
         <ControlPanel
           dataService={dataService}
