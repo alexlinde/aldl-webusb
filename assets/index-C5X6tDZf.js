@@ -278,14 +278,14 @@ Error generating stack: `+l.message+`
   "MW2": {
     "name": "MODE WORD 2",
     "bits": [
-      { "bit": 0, "name": "ROAD SPEED PULSE OCCURRED" },
-      { "bit": 1, "name": "ESC 43B READY FOR SECOND PE" },
+      { "bit": 0, "name": "ROAD SPEED PULSE OCCURRED"},
+      { "bit": 1, "name": "ESC 43B READY FOR SECOND PE"},
       { "bit": 2, "name": "REFERENCE PULSE OCCURRED", "description": "1 = DISTRIBUTOR PULSE RECEIVED" },
       { "bit": 3, "name": "DIAGNOSTIC SWITCH IN FACTORY TEST POSITION (3.9K)"},
       { "bit": 4, "name": "DIAGNOSTIC SWITCH IN DIAGNOSTIC POSITION (0 OHMS)"},
       { "bit": 5, "name": "DIAGNOSTIC SWITCH IN ALDL POSITION (10k)"},
-      { "bit": 6, "name": "1ST TIME IDLE FLAG", "description": "0 = FIRST TIME" },
-      { "bit": 7, "name": "IDLE FLAG", "description": "1=TPS < KISTPSI & MPH < KIDLMPH" }
+      { "bit": 6, "name": "1ST TIME IDLE FLAG", "description": "0 = FIRST TIME"},
+      { "bit": 7, "name": "IDLE FLAG", "description": "1=TPS < KISTPSI & MPH < KIDLMPH", "chart": "IDLE"}
     ]
   },
   "MALFFLG1": {
@@ -334,13 +334,13 @@ Error generating stack: `+l.message+`
     "name": "MODE WORD A/F 1",
     "bits": [
       { "bit": 0, "name": "CLEAR FLOOD FLAG", "description": "1 = CRANKED IN C/FLOOD" },
-      { "bit": 1, "name": "LEARN CONTROL ENABLE FLAG", "description": "1 = ENABLE STORE" },
-      { "bit": 2, "name": "LOW BATTERY", "description": "1 = LOW" },
+      { "bit": 1, "name": "LEARN CONTROL ENABLE FLAG", "description": "1 = ENABLE STORE"},
+      { "bit": 2, "name": "LOW BATTERY", "description": "1 = LOW", "chart": "LOW BATT"},
       { "bit": 3, "name": "4-3 DOWNSHIFT FOR TCC UNLOCK", "description": "0: No downshift, 1: 4-3 downshift for TCC unlock" },
       { "bit": 4, "name": "ASYNCHRONOUS FLAG", "description": "0: Synchronous operation, 1: Asynchronous operation" },
       { "bit": 5, "name": "OLD HIGH GEAR FLAG", "description": "0 = HIGH GEAR LAST TIME" },
-      { "bit": 6, "name": "RICH LEAN FLAG", "description": "1 = RICH  0 = LEAN" },
-      { "bit": 7, "name": "CLOSED LOOP FLAG", "description": "1 = CLOSED LOOP" }
+      { "bit": 6, "name": "RICH LEAN FLAG", "description": "1 = RICH  0 = LEAN", "chart": "RICH/LEAN"},
+      { "bit": 7, "name": "CLOSED LOOP FLAG", "description": "1 = CLOSED LOOP", "chart": "CLOSED LOOP"}
     ]
   },
   "MCU2IO": {
