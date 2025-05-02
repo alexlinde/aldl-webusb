@@ -12,7 +12,11 @@ import { Signal, ProcessedFrame } from './types/aldl'
 const App: FC = () => {
   const [processor] = useState(() => new ALDLProcessor())
   const [usbInterface] = useState(() => new USBInterface())
-  const [dataService, setDataService] = useState<DataService | null>(null)
+  const [dataService] = useState(() => new DataService(processor, usbInterface, (frame: ProcessedFrame) => {
+    setSignals(frame.signals)
+    setCurrentFrame(frame)
+    setSelectedSignals(frame.signals)
+  }))
   const [signals, setSignals] = useState<Signal[]>([])
   const [selectedSignals, setSelectedSignals] = useState<Signal[]>([])
   const [currentFrame, setCurrentFrame] = useState<ProcessedFrame>({ signals: [], timestamp: null })
@@ -20,15 +24,19 @@ const App: FC = () => {
   const [isPlaying, setIsPlaying] = useState(false)
   const [visiblePids, setVisiblePids] = useState<Set<string>>(new Set())
   
+  const setPids = (signals: Signal[]) => {
+    const pidsWithBitFields = new Set(signals
+      .filter(signal => signal.bitFields && signal.bitFields.length > 0)
+      .map(signal => signal.name))
+    setVisiblePids(pidsWithBitFields)
+  }
+  
   useEffect(() => {
-    const newDataService = new DataService(processor, usbInterface, (frame: ProcessedFrame) => {
-      setSignals(frame.signals)
-      setCurrentFrame(frame)
-      // Update selected signals when new signals arrive
-      setSelectedSignals(frame.signals)
-    })
-    setDataService(newDataService)
-  }, [processor, usbInterface])
+    // Set initial frame and initialize visible PIDs
+    const initialFrame = dataService.getInitialFrame()
+    setCurrentFrame(initialFrame)
+    setPids(initialFrame.signals)
+  }, [dataService])
 
   const handleTogglePid = (pidName: string) => {
     setVisiblePids(prev => {
@@ -49,20 +57,12 @@ const App: FC = () => {
   const handleConnectionChange = (connected: boolean) => {
     setIsConnected(connected)
     if (connected) {
-      // Initialize visible PIDs when connecting to USB
-      const pidsWithBitFields = new Set(signals
-        .filter(signal => signal.bitFields && signal.bitFields.length > 0)
-        .map(signal => signal.name))
-      setVisiblePids(pidsWithBitFields)
+      setPids(signals)
     }
   }
 
   const handleTestDataLoaded = () => {
-    // Initialize visible PIDs when loading test data
-    const pidsWithBitFields = new Set(signals
-      .filter(signal => signal.bitFields && signal.bitFields.length > 0)
-      .map(signal => signal.name))
-    setVisiblePids(pidsWithBitFields)
+    // No need to reset visible PIDs since we're using signal names
   }
 
   return (
@@ -83,7 +83,7 @@ const App: FC = () => {
             onFrameSelect={handleFrameSelect}
           />
           <BitFieldsTable 
-            signals={selectedSignals}
+            signals={selectedSignals.length > 0 ? selectedSignals : currentFrame.signals}
             visiblePids={visiblePids}
             onTogglePid={handleTogglePid}
           />

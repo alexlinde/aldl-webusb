@@ -3,7 +3,7 @@ import { Signal, ProcessedFrame } from '../types/aldl'
 
 interface MainTableProps {
   frame: ProcessedFrame
-  onFrameSelect?: (frame: ProcessedFrame) => void
+  onFrameSelect: (frame: ProcessedFrame) => void
 }
 
 const MainTable: FC<MainTableProps> = ({ frame, onFrameSelect }) => {
@@ -16,17 +16,21 @@ const MainTable: FC<MainTableProps> = ({ frame, onFrameSelect }) => {
     updateTable(frame)
   }, [frame])
 
+  const updateTable = (frame: ProcessedFrame) => {
+    setFrameHistory(prev => {
+      // Skip adding the initial zero frame
+      if (frame.timestamp === null) {
+        return prev
+      }
+      return [frame, ...prev]
+    })
+  }
+
   const updateSelectedFrame = (columnIndex: number, page: number) => {
-    if (onFrameSelect) {
       const frameIndex = columnIndex + page * FRAMES_PER_PAGE
       if (frameIndex < frameHistory.length) {
         onFrameSelect(frameHistory[frameIndex])
       }
-    }
-  }
-
-  const updateTable = (frame: ProcessedFrame) => {
-    setFrameHistory(prev => [frame, ...prev])
   }
 
   const selectColumn = (columnIndex: number) => {
@@ -91,7 +95,7 @@ const MainTable: FC<MainTableProps> = ({ frame, onFrameSelect }) => {
                 key={`header-${i}`}
                 className={i === selectedColumn ? 'selected' : ''}
                 onClick={() => selectColumn(i)}
-                title={pageFrames[i] ? formatTimestamp(pageFrames[i].timestamp!) : ''}
+                title={pageFrames[i] ? formatTimestamp(pageFrames[i].timestamp) : ''}
               >
                 -{i + currentPage * FRAMES_PER_PAGE}
               </th>

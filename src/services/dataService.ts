@@ -22,6 +22,10 @@ export class DataService {
     this.onDataUpdate = onDataUpdate
   }
 
+  getInitialFrame(): ProcessedFrame {
+    return { signals: this.aldlProcessor.processFrame(new Uint8Array(20)), timestamp: null }
+  }
+
   startLiveUpdates() {
     this.usbInterface.onDataReceived = (data, timestamp) => {
       const signals = this.aldlProcessor.processFrame(new Uint8Array(data.buffer))

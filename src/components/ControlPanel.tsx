@@ -83,7 +83,7 @@ export const ControlPanel: FC<ControlPanelProps> = ({
     
     const signals = dataService.stepTestData()
     // If no signals returned, we've reached the end
-    if (signals.length === 0) {
+    if (signals === null) {
       setHasMoreFrames(false)
     }
   }
