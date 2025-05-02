@@ -3,6 +3,7 @@ import './App.css'
 import MainTable from './components/MainTable'
 import BitFieldsTable from './components/BitFieldsTable'
 import O2Grid from './components/O2Grid'
+import PIDChart from './components/PIDChart'
 import { ControlPanel } from './components/ControlPanel'
 import { ALDLProcessor } from './services/aldlProcessor'
 import { USBInterface } from './services/usbInterface'
@@ -35,6 +36,7 @@ const App: FC = () => {
     // Set initial frame and initialize visible PIDs
     const initialFrame = dataService.getInitialFrame()
     setCurrentFrame(initialFrame)
+    setSignals(initialFrame.signals)
     setPids(initialFrame.signals)
   }, [dataService])
 
@@ -88,7 +90,10 @@ const App: FC = () => {
             onTogglePid={handleTogglePid}
           />
         </div>
-        <O2Grid signals={signals} />
+        <p/>
+        <PIDChart frame={currentFrame} />
+        <p/>
+        <O2Grid frame={currentFrame} />
       </div>
     </div>
   )

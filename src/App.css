@@ -263,3 +263,16 @@
 .controls button:last-child {
   margin-right: 0;
 }
+
+.pid-chart-container {
+  margin-top: 2rem;
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--bg-color);
+}
+
+.chart-container {
+  margin-top: 1rem;
+  position: relative;
+}

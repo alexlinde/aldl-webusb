@@ -29,6 +29,8 @@
     "scale": 1,
     "unit": "cnt",
     "round": 0,
+    "min": 0,
+    "max": 255,
     "description": "Idle Air Control Position"
   },
   {
@@ -37,6 +39,8 @@
     "scale": 1,
     "unit": "°C",
     "round": 0,
+    "min": -40,
+    "max": 200,
     "description": "Coolant Temperature"
   },
   {
@@ -45,6 +49,8 @@
     "scale": 1,
     "unit": "MPH",
     "round": 0,
+    "min": 0,
+    "max": 255,
     "description": "Vehicle Speed"
   },
   {
@@ -53,6 +59,8 @@
     "scale": 0.0196,
     "unit": "V",
     "round": 2,
+    "min": 0,
+    "max": 5,
     "description": "Manifold Absolute Pressure Voltage"
   },
   {
@@ -62,6 +70,8 @@
     "unit": "kPa",
     "offset": 10.3540,
     "round": 0,
+    "min": 10,
+    "max": 105,
     "description": "Manifold Absolute Pressure"
   },
   {
@@ -70,6 +80,8 @@
     "scale": 25,
     "unit": "rpm",
     "round": 0,
+    "min": 0,
+    "max": 6375,
     "description": "Engine Speed"
   },
   {
@@ -78,6 +90,8 @@
     "scale": 0.0196,
     "unit": "V",
     "round": 2,
+    "min": 0,
+    "max": 5,
     "description": "Throttle Position Sensor Voltage"
   },
   {
@@ -88,6 +102,8 @@
     "range_low": 24,
     "range_high": 225,
     "round": 0,
+    "min": 0,
+    "max": 100,
     "description": "Throttle Position Percentage"
   },
   {
@@ -96,6 +112,8 @@
     "scale": 1,
     "unit": "",
     "round": 0,
+    "min": 0,
+    "max": 255,
     "description": "Integration Value"
   },
   {
@@ -104,6 +122,8 @@
     "scale": 4.34,
     "unit": "mV",
     "round": 0,
+    "min": 0,
+    "max": 1000,
     "description": "Oxygen Sensor Voltage"
   },
   {
@@ -144,6 +164,8 @@
     "scale": 0.1,
     "unit": "V",
     "round": 1,
+    "min": 0,
+    "max": 25.5,
     "description": "Battery Voltage"
   },
   {
@@ -168,6 +190,8 @@
     "scale": 1,
     "unit": "",
     "round": 0,
+    "min": 0,
+    "max": 255,
     "description": "Block Learn Multiplier"
   },
   {
@@ -176,6 +200,8 @@
     "scale": 1,
     "unit": "cnt",
     "round": 0,
+    "min": 0,
+    "max": 255,
     "description": "O2 Sensor Cross Counts"
   }
 ]

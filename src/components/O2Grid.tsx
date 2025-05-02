@@ -1,13 +1,14 @@
 import { FC, useState, useEffect } from 'react'
+import { ProcessedFrame } from '../types/aldl'
 
 interface O2GridProps {
-  signals: any[]
+  frame: ProcessedFrame
 }
 
 type GridViewType = 'O2' | 'BLM' | 'INT'
 type DisplayMode = 'average' | 'last10' | 'latest'
 
-const O2Grid: FC<O2GridProps> = ({ signals }) => {
+const O2Grid: FC<O2GridProps> = ({ frame }) => {
   const [gridViewType, setGridViewType] = useState<GridViewType>('O2')
   const [displayMode, setDisplayMode] = useState<DisplayMode>('average')
   const [gridData, setGridData] = useState<{
@@ -21,10 +22,10 @@ const O2Grid: FC<O2GridProps> = ({ signals }) => {
   })
 
   useEffect(() => {
-    if (signals.length > 0) {
-      updateGrid(signals)
+    if (frame.signals.length > 0) {
+      updateGrid(frame.signals)
     }
-  }, [signals])
+  }, [frame])
 
   const handleViewTypeChange = (type: GridViewType) => {
     setGridViewType(type)
@@ -106,9 +107,9 @@ const O2Grid: FC<O2GridProps> = ({ signals }) => {
               value={displayMode} 
               onChange={handleDisplayModeChange}
             >
-              <option value="average">All Time Average</option>
-              <option value="last10">Last 10 Average</option>
               <option value="latest">Latest Value</option>
+              <option value="last10">Last 10 Average</option>
+              <option value="average">All Time Average</option>
             </select>
           </div>
         </div>
@@ -117,7 +118,7 @@ const O2Grid: FC<O2GridProps> = ({ signals }) => {
         <thead>
           <tr>
             <th className="axis-label">RPM / MAP (kPa)</th>
-            {Array.from({ length: 11 }, (_, i) => i * 10).map(map => (
+            {Array.from({ length: 10 }, (_, i) => (i + 1) * 10).map(map => (
               <th key={map}>{map}</th>
             ))}
           </tr>
@@ -126,7 +127,7 @@ const O2Grid: FC<O2GridProps> = ({ signals }) => {
           {Array.from({ length: 16 }, (_, i) => i * 400).map(rpm => (
             <tr key={rpm}>
               <th>{rpm}</th>
-              {Array.from({ length: 11 }, (_, i) => i * 10).map(map => {
+              {Array.from({ length: 10 }, (_, i) => (i + 1) * 10).map(map => {
                 const gridKey = `${rpm},${map}`
                 const values = gridData[gridViewType].get(gridKey)
                 return (

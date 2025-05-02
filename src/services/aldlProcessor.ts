@@ -82,6 +82,8 @@ export class ALDLProcessor {
           unit: def.unit,
           rawValue: value,
           round: def.round || 0,
+          min: def.min,
+          max: def.max,
           bitFields: bitFields.length > 0 ? bitFields : undefined,
           description: def.description
         })

@@ -14,6 +14,8 @@ export interface Signal {
   unit: string
   rawValue: number
   round: number
+  min?: number
+  max?: number
   bitFields?: BitField[]
   description?: string
 }
@@ -36,6 +38,8 @@ export interface PidDefinition {
   range_high?: number
   round?: number
   description?: string
+  min?: number
+  max?: number
 }
 
 export interface BitFieldDefinition {
