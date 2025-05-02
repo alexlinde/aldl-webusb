@@ -8,7 +8,7 @@ export class USBInterface {
   private state: 'WAIT_SYNC' | 'START_BIT' | 'READING_BYTE' = 'WAIT_SYNC';
   private bitBuffer: Bit[] = [];
   private reader: ReadableStreamDefaultReader<Uint8Array> | null = null;
-  public onDataReceived: ((data: Uint8Array) => void) | null = null
+  public onDataReceived: ((data: Uint8Array, timestamp: number) => void) | null = null
   public onDataReceivedError = (error: any) => {
     console.error('USB data reception error:', error)
   }
@@ -52,7 +52,7 @@ export class USBInterface {
 
         if (this.frame.length >= 20) {
           if (this.onDataReceived) {
-            this.onDataReceived(new Uint8Array(this.frame));
+            this.onDataReceived(new Uint8Array(this.frame), Date.now());
           }
           this.resetState();
         }

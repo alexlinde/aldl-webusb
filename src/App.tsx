@@ -7,7 +7,7 @@ import { ControlPanel } from './components/ControlPanel'
 import { ALDLProcessor } from './services/aldlProcessor'
 import { USBInterface } from './services/usbInterface'
 import { DataService } from './services/dataService'
-import { Signal } from './types/aldl'
+import { Signal, ProcessedFrame } from './types/aldl'
 
 const App: FC = () => {
   const [processor] = useState(() => new ALDLProcessor())
@@ -15,15 +15,17 @@ const App: FC = () => {
   const [dataService, setDataService] = useState<DataService | null>(null)
   const [signals, setSignals] = useState<Signal[]>([])
   const [selectedSignals, setSelectedSignals] = useState<Signal[]>([])
+  const [currentFrame, setCurrentFrame] = useState<ProcessedFrame>({ signals: [], timestamp: null })
   const [isConnected, setIsConnected] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
   const [visiblePids, setVisiblePids] = useState<Set<string>>(new Set())
   
   useEffect(() => {
-    const newDataService = new DataService(processor, usbInterface, (newSignals: Signal[]) => {
-      setSignals(newSignals)
+    const newDataService = new DataService(processor, usbInterface, (frame: ProcessedFrame) => {
+      setSignals(frame.signals)
+      setCurrentFrame(frame)
       // Update selected signals when new signals arrive
-      setSelectedSignals(newSignals)
+      setSelectedSignals(frame.signals)
     })
     setDataService(newDataService)
   }, [processor, usbInterface])
@@ -40,8 +42,8 @@ const App: FC = () => {
     })
   }
 
-  const handleFrameSelect = (frameSignals: Signal[]) => {
-    setSelectedSignals(frameSignals)
+  const handleFrameSelect = (frame: ProcessedFrame) => {
+    setSelectedSignals(frame.signals)
   }
 
   const handleConnectionChange = (connected: boolean) => {
@@ -77,7 +79,7 @@ const App: FC = () => {
         />
         <div className="grid">
           <MainTable
-            signals={signals}
+            frame={currentFrame}
             onFrameSelect={handleFrameSelect}
           />
           <BitFieldsTable 

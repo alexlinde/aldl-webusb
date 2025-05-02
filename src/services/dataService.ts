@@ -1,5 +1,6 @@
 import { ALDLProcessor } from './aldlProcessor'
 import { USBInterface } from './usbInterface'
+import { ProcessedFrame } from '../types/aldl'
 
 interface TestFrame {
   timestamp: string
@@ -9,41 +10,38 @@ interface TestFrame {
 export class DataService {
   private aldlProcessor: ALDLProcessor
   private usbInterface: USBInterface
-  private testFrames: Uint8Array[] = []
+  private testFrames: TestFrame[] = []
   private currentFrameIndex = 0
   private isPlaying = false
   private playbackTimer: number | null = null
-  private onDataUpdate: ((signals: any[]) => void)
+  private onDataUpdate: ((frame: ProcessedFrame) => void)
   
-  constructor(aldlProcessor: ALDLProcessor, usbInterface: USBInterface, onDataUpdate: (signals: any[]) => void) {
+  constructor(aldlProcessor: ALDLProcessor, usbInterface: USBInterface, onDataUpdate: (frame: ProcessedFrame) => void) {
     this.aldlProcessor = aldlProcessor
     this.usbInterface = usbInterface
     this.onDataUpdate = onDataUpdate
   }
 
   startLiveUpdates() {
-    this.usbInterface.onDataReceived = (data) => {
+    this.usbInterface.onDataReceived = (data, timestamp) => {
       const signals = this.aldlProcessor.processFrame(new Uint8Array(data.buffer))
-      this.onDataUpdate(signals)
+      this.onDataUpdate({ signals, timestamp })
     }
   }
 
   stopLiveUpdates() {
-    // Clear any pending test data playback
-    this.pauseTestData()
-    
     // Disconnect from USB device if connected
     if (this.usbInterface.isDeviceConnected()) {
       this.usbInterface.disconnect()
     }
   }
 
-  async loadTestDataFromFile(file: File): Promise<Uint8Array[]> {
+  async loadTestDataFromFile(file: File): Promise<TestFrame[]> {
     try {
       const text = await file.text()
       const frames: TestFrame[] = JSON.parse(text)
       
-      this.testFrames = frames.map(frame => new Uint8Array(frame.frame))
+      this.testFrames = frames
       this.currentFrameIndex = 0
       
       return this.testFrames
@@ -67,28 +65,33 @@ export class DataService {
     }
   }
 
-  stepTestData(): any[] {
-    if (this.testFrames.length === 0) return []
+  stepTestData(): ProcessedFrame | null {
+    if (this.testFrames.length === 0) return null
     
-    // If we've reached the end, return empty array
-    if (this.currentFrameIndex >= this.testFrames.length) return []
+    // If we've reached the end, return null
+    if (this.currentFrameIndex >= this.testFrames.length) return null
     
     const frame = this.testFrames[this.currentFrameIndex]
-    const signals = this.aldlProcessor.processFrame(frame)
+    const signals = this.aldlProcessor.processFrame(new Uint8Array(frame.frame))
+    const timestamp = new Date(frame.timestamp).getTime()
     
     this.currentFrameIndex++
-    this.onDataUpdate(signals)
+    const processedFrame = { signals, timestamp }
+    this.onDataUpdate(processedFrame)
     
-    return signals
+    return processedFrame
   }
 
   private playNextFrame() {
     if (!this.isPlaying) return
     
-    this.stepTestData()
-    
-    this.playbackTimer = window.setTimeout(() => {
-      this.playNextFrame()
-    }, 100) // Play one frame per second
+    const frame = this.stepTestData()
+    if (frame) {
+      this.playbackTimer = window.setTimeout(() => {
+        this.playNextFrame()
+      }, 100) // Play one frame per second
+    } else {
+      this.isPlaying = false
+    }
   }
 } 

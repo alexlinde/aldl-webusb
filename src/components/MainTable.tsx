@@ -1,20 +1,20 @@
 import { FC, useState, useEffect } from 'react'
-import { Signal } from '../types/aldl'
+import { Signal, ProcessedFrame } from '../types/aldl'
 
 interface MainTableProps {
-  signals: Signal[]
-  onFrameSelect?: (signals: Signal[]) => void
+  frame: ProcessedFrame
+  onFrameSelect?: (frame: ProcessedFrame) => void
 }
 
-const MainTable: FC<MainTableProps> = ({ signals, onFrameSelect }) => {
+const MainTable: FC<MainTableProps> = ({ frame, onFrameSelect }) => {
   const [selectedColumn, setSelectedColumn] = useState(0)
-  const [frameHistory, setFrameHistory] = useState<Signal[][]>([])
+  const [frameHistory, setFrameHistory] = useState<ProcessedFrame[]>([])
   const [currentPage, setCurrentPage] = useState(0)
   const FRAMES_PER_PAGE = 8
 
   useEffect(() => {
-    updateTable(signals)
-  }, [signals])
+    updateTable(frame)
+  }, [frame])
 
   const updateSelectedFrame = (columnIndex: number, page: number) => {
     if (onFrameSelect) {
@@ -25,8 +25,8 @@ const MainTable: FC<MainTableProps> = ({ signals, onFrameSelect }) => {
     }
   }
 
-  const updateTable = (signals: Signal[]) => {
-    setFrameHistory(prev => [signals, ...prev])
+  const updateTable = (frame: ProcessedFrame) => {
+    setFrameHistory(prev => [frame, ...prev])
   }
 
   const selectColumn = (columnIndex: number) => {
@@ -48,6 +48,11 @@ const MainTable: FC<MainTableProps> = ({ signals, onFrameSelect }) => {
     return `${value.value.toFixed(value.round)} ${value.unit}`
   }
 
+  const formatTimestamp = (timestamp: number | null): string => {
+    if (timestamp === null) return ''
+    return new Date(timestamp).toLocaleTimeString()
+  }
+
   const handlePreviousPage = () => {
     if (currentPage > 0) {
       setCurrentPage(prev => prev - 1)
@@ -63,7 +68,7 @@ const MainTable: FC<MainTableProps> = ({ signals, onFrameSelect }) => {
     }
   }
 
-  const getPageFrames = (): Signal[][] => {
+  const getPageFrames = (): ProcessedFrame[] => {
     const start = currentPage * FRAMES_PER_PAGE
     return frameHistory.slice(start, start + FRAMES_PER_PAGE)
   }
@@ -86,6 +91,7 @@ const MainTable: FC<MainTableProps> = ({ signals, onFrameSelect }) => {
                 key={`header-${i}`}
                 className={i === selectedColumn ? 'selected' : ''}
                 onClick={() => selectColumn(i)}
+                title={pageFrames[i] ? formatTimestamp(pageFrames[i].timestamp!) : ''}
               >
                 -{i + currentPage * FRAMES_PER_PAGE}
               </th>
@@ -94,8 +100,8 @@ const MainTable: FC<MainTableProps> = ({ signals, onFrameSelect }) => {
           </tr>
         </thead>
         <tbody>
-          {signals.map(signal => {
-            const selectedValue = pageFrames[selectedColumn]?.find(s => s.name === signal.name)
+          {frame.signals.map(signal => {
+            const selectedValue = pageFrames[selectedColumn]?.signals.find(s => s.name === signal.name)
             return (
               <tr key={`row-${signal.name}`}>
                 <td key={`pid-${signal.name}`} title={signal.description}>{signal.name}</td>
@@ -104,7 +110,7 @@ const MainTable: FC<MainTableProps> = ({ signals, onFrameSelect }) => {
                     key={`cell-${signal.name}-${i}`}
                     className={i === selectedColumn ? 'selected' : ''}
                   >
-                    {getDisplayValue(pageFrames[i]?.find(s => s.name === signal.name))}
+                    {getDisplayValue(pageFrames[i]?.signals.find(s => s.name === signal.name))}
                   </td>
                 ))}
                 <td key={`decoded-${signal.name}`}>

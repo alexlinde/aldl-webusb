@@ -3,6 +3,11 @@ export interface ALDLFrame {
   timestamp: number
 }
 
+export interface ProcessedFrame {
+  signals: Signal[]
+  timestamp: number | null
+}
+
 export interface Signal {
   name: string
   value: number
