@@ -10,7 +10,7 @@ type DisplayMode = 'average' | 'last10' | 'latest'
 
 const O2Grid: FC<O2GridProps> = ({ frame }) => {
   const [gridViewType, setGridViewType] = useState<GridViewType>('O2')
-  const [displayMode, setDisplayMode] = useState<DisplayMode>('average')
+  const [displayMode, setDisplayMode] = useState<DisplayMode>('latest')
   const [gridData, setGridData] = useState<{
     O2: Map<string, number[]>
     BLM: Map<string, number[]>
@@ -22,7 +22,7 @@ const O2Grid: FC<O2GridProps> = ({ frame }) => {
   })
 
   useEffect(() => {
-    if (frame.signals.length > 0) {
+    if (frame.signals.length > 0 && frame.timestamp !== null) {
       updateGrid(frame.signals)
     }
   }, [frame])
