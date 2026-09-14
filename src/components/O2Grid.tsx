@@ -1,112 +1,82 @@
-import { FC, useState, useEffect } from 'react'
+import { ChangeEvent, FC, useMemo, useState } from 'react'
 import { ProcessedFrame } from '../types/aldl'
-
-interface O2GridProps {
-  frame: ProcessedFrame
-}
 
 type GridViewType = 'O2' | 'BLM' | 'INT'
 type DisplayMode = 'average' | 'last10' | 'latest'
 
-const O2Grid: FC<O2GridProps> = ({ frame }) => {
-  const [gridViewType, setGridViewType] = useState<GridViewType>('O2')
+interface O2GridProps {
+  history: ProcessedFrame[]
+  latest: ProcessedFrame | null
+}
+
+const VIEWS: GridViewType[] = ['O2', 'BLM', 'INT']
+const RPM_STEP = 400
+const RPM_ROWS = Array.from({ length: 16 }, (_, i) => i * RPM_STEP)
+const MAP_STEP = 10
+const MAP_COLUMNS = Array.from({ length: 10 }, (_, i) => (i + 1) * MAP_STEP)
+
+/** The RPM/MAP cell a frame falls into, or null when it has no RPM or MAP. */
+function binKey(frame: ProcessedFrame): string | null {
+  const rpm = frame.signals.find((signal) => signal.name === 'RPM')
+  const map = frame.signals.find((signal) => signal.name === 'MAP-P')
+  if (!rpm || !map) return null
+  return `${Math.round(rpm.value / RPM_STEP) * RPM_STEP},${Math.round(map.value / MAP_STEP) * MAP_STEP}`
+}
+
+const O2Grid: FC<O2GridProps> = ({ history, latest }) => {
+  const [view, setView] = useState<GridViewType>('O2')
   const [displayMode, setDisplayMode] = useState<DisplayMode>('latest')
-  const [gridData, setGridData] = useState<{
-    O2: Map<string, number[]>
-    BLM: Map<string, number[]>
-    INT: Map<string, number[]>
-  }>({
-    O2: new Map(),
-    BLM: new Map(),
-    INT: new Map()
-  })
 
-  useEffect(() => {
-    if (frame.signals.length > 0 && frame.timestamp !== null) {
-      updateGrid(frame.signals)
+  /** One Map per view, keyed `${rpm},${map}`, holding every sample binned there. */
+  const bins = useMemo(() => {
+    const result: Record<GridViewType, Map<string, number[]>> = {
+      O2: new Map(),
+      BLM: new Map(),
+      INT: new Map(),
     }
-  }, [frame])
-
-  const handleViewTypeChange = (type: GridViewType) => {
-    setGridViewType(type)
-  }
-
-  const handleDisplayModeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setDisplayMode(event.target.value as DisplayMode)
-  }
-
-  const updateGrid = (signals: any[]) => {
-    const rpmSignal = signals.find(s => s.name === 'RPM')
-    const mapSignal = signals.find(s => s.name === 'MAP-P')
-    
-    if (!rpmSignal || !mapSignal) return
-
-    const roundedRPM = Math.round(rpmSignal.value / 400) * 400
-    const roundedMAP = Math.round(mapSignal.value / 10) * 10
-    const gridKey = `${roundedRPM},${roundedMAP}`
-
-    const newGridData = { ...gridData }
-
-    ;(['O2', 'BLM', 'INT'] as GridViewType[]).forEach(viewType => {
-      const valueSignal = signals.find(s => s.name === viewType)
-      if (valueSignal) {
-        const values = newGridData[viewType].get(gridKey) || []
-        values.push(valueSignal.value)
-        newGridData[viewType].set(gridKey, values)
+    for (const frame of history) {
+      const key = binKey(frame)
+      if (key === null) continue
+      for (const name of VIEWS) {
+        const signal = frame.signals.find((candidate) => candidate.name === name)
+        if (!signal) continue
+        const values = result[name].get(key)
+        if (values) values.push(signal.value)
+        else result[name].set(key, [signal.value])
       }
-    })
-
-    setGridData(newGridData)
-  }
-
-  const getAverage = (values: number[]): number => {
-    if (values.length === 0) return 0
-    return values.reduce((sum, val) => sum + val, 0) / values.length
-  }
-
-  const getLast10Average = (values: number[]): number => {
-    if (values.length === 0) return 0
-    const last10Values = values.slice(-10)
-    return last10Values.reduce((sum, val) => sum + val, 0) / last10Values.length
-  }
-
-  const getLatestValue = (values: number[]): number => {
-    if (values.length === 0) return 0
-    return values[values.length - 1]
-  }
-
-  const getDisplayValue = (values: number[]): number => {
-    if (!values) return 0
-    switch (displayMode) {
-      case 'average':
-        return getAverage(values)
-      case 'last10':
-        return getLast10Average(values)
-      case 'latest':
-        return getLatestValue(values)
-      default:
-        return getAverage(values)
     }
+    return result
+  }, [history])
+
+  const latestKey = latest ? binKey(latest) : null
+
+  const displayValue = (values: number[]): number => {
+    if (values.length === 0) return 0
+    if (displayMode === 'latest') return values[values.length - 1]
+    const window = displayMode === 'last10' ? values.slice(-10) : values
+    return window.reduce((sum, value) => sum + value, 0) / window.length
+  }
+
+  const handleDisplayModeChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    setDisplayMode(event.target.value as DisplayMode)
   }
 
   return (
     <div className="o2-grid-container">
       <div className="grid-controls">
         <div className="grid-view-buttons">
-          {(['O2', 'BLM', 'INT'] as GridViewType[]).map(type => (
+          {VIEWS.map((type) => (
             <button
+              type="button"
               key={type}
-              className={gridViewType === type ? 'active' : ''}
-              onClick={() => handleViewTypeChange(type)}
+              className={view === type ? 'active' : ''}
+              onClick={() => setView(type)}
             >
               {type}
             </button>
           ))}
           <div className="display-mode-selector">
-            <select 
-              value={displayMode} 
-              onChange={handleDisplayModeChange}
-            >
+            <select value={displayMode} onChange={handleDisplayModeChange}>
               <option value="latest">Latest Value</option>
               <option value="last10">Last 10 Average</option>
               <option value="average">All Time Average</option>
@@ -118,25 +88,31 @@ const O2Grid: FC<O2GridProps> = ({ frame }) => {
         <thead>
           <tr>
             <th className="axis-label">RPM / MAP (kPa)</th>
-            {Array.from({ length: 10 }, (_, i) => (i + 1) * 10).map(map => (
+            {MAP_COLUMNS.map((map) => (
               <th key={map}>{map}</th>
             ))}
           </tr>
         </thead>
         <tbody>
-          {Array.from({ length: 16 }, (_, i) => i * 400).map(rpm => (
+          {RPM_ROWS.map((rpm) => (
             <tr key={rpm}>
               <th>{rpm}</th>
-              {Array.from({ length: 10 }, (_, i) => (i + 1) * 10).map(map => {
-                const gridKey = `${rpm},${map}`
-                const values = gridData[gridViewType].get(gridKey)
+              {MAP_COLUMNS.map((map) => {
+                const key = `${rpm},${map}`
+                const values = bins[view].get(key)
                 return (
-                  <td 
+                  <td
                     key={map}
                     data-rpm={rpm}
                     data-map={map}
+                    className={key === latestKey ? 'current' : ''}
+                    title={
+                      values
+                        ? `${values.length} ${values.length === 1 ? 'sample' : 'samples'}`
+                        : 'no samples'
+                    }
                   >
-                    {values ? getDisplayValue(values).toFixed(0) : ''}
+                    {values ? displayValue(values).toFixed(0) : ''}
                   </td>
                 )
               })}
@@ -148,4 +124,4 @@ const O2Grid: FC<O2GridProps> = ({ frame }) => {
   )
 }
 
-export default O2Grid 
+export default O2Grid

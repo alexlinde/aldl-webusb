@@ -38,6 +38,7 @@
     "name": "CT",
     "scale": 1,
     "unit": "°C",
+    "lookup": "coolant",
     "round": 0,
     "min": -40,
     "max": 200,

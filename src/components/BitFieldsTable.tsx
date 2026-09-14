@@ -1,53 +1,72 @@
-import { FC, useState, useEffect } from 'react'
-import { Signal, BitField } from '../types/aldl'
+import { FC, useMemo } from 'react'
+import { BitField, Signal } from '../types/aldl'
 
 interface BitFieldsTableProps {
+  /** Signals of the frame selected in the main table. */
   signals: Signal[]
-  visiblePids: Set<string>
+  visiblePids: ReadonlySet<string>
   onTogglePid: (pidName: string) => void
+  /** False before the first frame, so "no codes" is not claimed too early. */
+  hasData: boolean
 }
 
-const BitFieldsTable: FC<BitFieldsTableProps> = ({ 
-  signals, 
-  visiblePids, 
+function renderRows(bits: BitField[]) {
+  return bits.map((bit) => (
+    <tr key={`${bit.pidName}-${bit.bitName}`}>
+      <td>{bit.pidName}</td>
+      <td>{bit.bitName}</td>
+      <td title={bit.description}>{bit.value ? '1' : '0'}</td>
+    </tr>
+  ))
+}
+
+const BitFieldsTable: FC<BitFieldsTableProps> = ({
+  signals,
+  visiblePids,
   onTogglePid,
+  hasData,
 }) => {
-  const [bitFields, setBitFields] = useState<BitField[]>([])
+  const bitFields = useMemo(
+    () => signals.flatMap((signal) => signal.bitFields ?? []),
+    [signals],
+  )
 
-  useEffect(() => {
-    // Collect all bit fields from signals
-    const allBitFields = signals
-      .filter(signal => signal.bitFields)
-      .flatMap(signal => signal.bitFields!)
-    setBitFields(allBitFields)
-  }, [signals])
+  const malfBits = useMemo(
+    () => bitFields.filter((bit) => bit.type === 'MALF' && bit.value),
+    [bitFields],
+  )
 
-  const malBits = bitFields.filter(bit => bit.type === 'MALF' && bit.value)
-  const nonMalBits = bitFields.filter(bit => bit.type !== 'MALF')
+  const togglePids = useMemo(() => {
+    const names: string[] = []
+    for (const bit of bitFields) {
+      if (bit.type !== 'MALF' && !names.includes(bit.pidName)) {
+        names.push(bit.pidName)
+      }
+    }
+    return names
+  }, [bitFields])
 
-  const renderValueCell = (bit: BitField) => {
-    const value = bit.value ? '1' : '0'
-    return bit.description ? (
-      <td title={bit.description}>{value}</td>
-    ) : (
-      <td>{value}</td>
-    )
-  }
+  const visibleBits = useMemo(
+    () =>
+      bitFields.filter(
+        (bit) => bit.type !== 'MALF' && visiblePids.has(bit.pidName),
+      ),
+    [bitFields, visiblePids],
+  )
 
   return (
     <div className="bit-fields-container">
       <div className="pid-toggle-buttons">
-        {Array.from(new Set(bitFields.map(bit => bit.pidName)))
-          .filter(pidName => bitFields.some(bit => bit.pidName === pidName && bit.type !== 'MALF'))
-          .map(pidName => (
-            <button
-              key={pidName}
-              className={visiblePids.has(pidName) ? 'active' : ''}
-              onClick={() => onTogglePid(pidName)}
-            >
-              {pidName}
-            </button>
-          ))}
+        {togglePids.map((pidName) => (
+          <button
+            type="button"
+            key={pidName}
+            className={visiblePids.has(pidName) ? 'active' : ''}
+            onClick={() => onTogglePid(pidName)}
+          >
+            {pidName}
+          </button>
+        ))}
       </div>
       <table className="bit-fields-table">
         <thead>
@@ -57,19 +76,9 @@ const BitFieldsTable: FC<BitFieldsTableProps> = ({
             <th>Value</th>
           </tr>
         </thead>
-        <tbody>
-          {nonMalBits
-            .filter(bit => visiblePids.has(bit.pidName))
-            .map((bit, index) => (
-              <tr key={`${bit.pidName}-${bit.bitName}-${index}`}>
-                <td>{bit.pidName}</td>
-                <td>{bit.bitName}</td>
-                {renderValueCell(bit)}
-              </tr>
-            ))}
-        </tbody>
+        <tbody>{renderRows(visibleBits)}</tbody>
       </table>
-      {malBits.length > 0 && (
+      {malfBits.length > 0 && (
         <>
           <h3>Malfunction Indicators</h3>
           <table className="bit-fields-table">
@@ -80,20 +89,15 @@ const BitFieldsTable: FC<BitFieldsTableProps> = ({
                 <th>Value</th>
               </tr>
             </thead>
-            <tbody>
-              {malBits.map((bit, index) => (
-                <tr key={`${bit.pidName}-${bit.bitName}-${index}`}>
-                  <td>{bit.pidName}</td>
-                  <td>{bit.bitName}</td>
-                  {renderValueCell(bit)}
-                </tr>
-              ))}
-            </tbody>
+            <tbody>{renderRows(malfBits)}</tbody>
           </table>
         </>
+      )}
+      {malfBits.length === 0 && hasData && (
+        <p className="no-malfunctions">No malfunction codes</p>
       )}
     </div>
   )
 }
 
-export default BitFieldsTable 
+export default BitFieldsTable

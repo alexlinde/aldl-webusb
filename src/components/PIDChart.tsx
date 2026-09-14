@@ -1,44 +1,38 @@
-import { FC, useState, useEffect } from 'react'
-import { ProcessedFrame } from '../types/aldl'
+import { FC, useMemo } from 'react'
 import { Line } from 'react-chartjs-2'
 import {
   Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
   ChartData,
   ChartOptions,
-  TimeScale,
-} from 'chart.js'
-import 'chartjs-adapter-date-fns'
-
-ChartJS.register(
-  CategoryScale,
+  LineElement,
   LinearScale,
   PointElement,
-  LineElement,
-  Title,
+  TimeScale,
   Tooltip,
-  Legend,
-  TimeScale
-)
+} from 'chart.js'
+import 'chartjs-adapter-date-fns'
+import { ProcessedFrame, Signal } from '../types/aldl'
+
+ChartJS.register(LinearScale, TimeScale, PointElement, LineElement, Tooltip)
+
+/** How much of the history the chart shows, in milliseconds. */
+const WINDOW_MS = 60_000
+
+/** One plotted sample: normalised for the axis, raw for the tooltip. */
+interface ChartPoint {
+  x: number
+  y: number
+  originalValue: number
+  unit: string
+}
 
 interface PIDChartProps {
-  frame: ProcessedFrame
-}
-
-interface ChartPoint {
-  timestamp: number
-  value: number
-  normalizedValue: number
-}
-
-interface PIDData {
-  [pidName: string]: ChartPoint[]
+  /** The ordered PID list; only those with min/max can be plotted. */
+  rows: Signal[]
+  history: ProcessedFrame[]
+  latest: ProcessedFrame | null
+  visiblePids: ReadonlySet<string>
+  onTogglePid: (pidName: string) => void
 }
 
 const COLORS = [
@@ -56,173 +50,141 @@ const COLORS = [
   '#95CD41', // darker pastel lime
   '#6B66FF', // darker pastel indigo
   '#FF9F6B', // darker pastel peach
-  '#4ECB9E'  // darker pastel seafoam
+  '#4ECB9E', // darker pastel seafoam
 ]
 
-const PIDChart: FC<PIDChartProps> = ({ frame }) => {
-  const [pidData, setPidData] = useState<PIDData>({})
-  const [visiblePids, setVisiblePids] = useState<Set<string>>(new Set())
-  const [chartData, setChartData] = useState<ChartData<'line'>>({
-    labels: [],
-    datasets: []
-  })
-  const [timeRange, setTimeRange] = useState<{ min: number; max: number }>({ min: 0, max: 0 })
-
-  // Get PIDs that can be plotted (have min/max values) and assign colors
-  const plottablePids = frame.signals
-    .filter(signal => 
-      typeof signal.min === 'number' &&
-      typeof signal.max === 'number'
-    )
-    .map((signal, index) => ({
-      signal,
-      color: COLORS[index % COLORS.length]
-    }))
-
-  useEffect(() => {
-    // Update PID data when new signals arrive
-    const newPidData = { ...pidData }
-
-    // Skip adding data if timestamp is null (initial frame)
-    if (frame.timestamp !== null) {
-      plottablePids.forEach(({ signal }) => {
-        if (!newPidData[signal.name]) {
-          newPidData[signal.name] = []
-        }
-        newPidData[signal.name].push({
-          timestamp: frame.timestamp!,
-          value: signal.value,
-          normalizedValue: (signal.value - signal.min!) / (signal.max! - signal.min!) * 100
-        })
-      })
-
-      setPidData(newPidData)
-    }
-  }, [frame])
-
-  useEffect(() => {
-    // Update chart data when PID data changes
-    const datasets = Array.from(visiblePids).map(pidName => {
-      const data = pidData[pidName] || []
-      const { signal, color } = plottablePids.find(p => p.signal.name === pidName)!
-      return {
-        label: pidName,
-        data: data.map(point => ({
-          x: point.timestamp,
-          y: point.normalizedValue,
-          originalValue: point.value,
-          unit: signal.unit || ''
+const PIDChart: FC<PIDChartProps> = ({
+  rows,
+  history,
+  latest,
+  visiblePids,
+  onTogglePid,
+}) => {
+  const plottable = useMemo(
+    () =>
+      rows
+        .filter(
+          (signal) =>
+            typeof signal.min === 'number' && typeof signal.max === 'number',
+        )
+        .map((signal, index) => ({
+          name: signal.name,
+          unit: signal.unit,
+          min: signal.min ?? 0,
+          max: signal.max ?? 1,
+          color: COLORS[index % COLORS.length],
         })),
-        borderColor: color,
-        backgroundColor: color,
-        tension: 0.1
-      }
-    })
+    [rows],
+  )
 
-    // Calculate time range
-    const allTimestamps = Object.values(pidData).flatMap(data => 
-      data.map(point => point.timestamp)
-    )
-    if (allTimestamps.length > 0) {
-      const maxTimestamp = Math.max(...allTimestamps)
-      const newTimeRange = {
-        min: maxTimestamp - 60000, // 60 seconds ago
-        max: maxTimestamp
-      }
-      setTimeRange(newTimeRange)
-    }
+  const windowStart = latest ? latest.timestamp - WINDOW_MS : 0
+  const windowEnd = latest ? latest.timestamp : 0
 
-    setChartData({
-      labels: Array.from(new Set(allTimestamps)),
-      datasets
-    })
-  }, [pidData, visiblePids])
+  /** Only the last WINDOW_MS of frames ever reach Chart.js. */
+  const recent = useMemo(
+    () =>
+      latest === null
+        ? []
+        : history.filter((frame) => frame.timestamp >= windowStart),
+    [history, latest, windowStart],
+  )
 
-  const handleTogglePid = (pidName: string) => {
-    setVisiblePids(prev => {
-      const newSet = new Set(prev)
-      if (newSet.has(pidName)) {
-        newSet.delete(pidName)
-      } else {
-        newSet.add(pidName)
-      }
-      return newSet
-    })
-  }
-
-  const options: ChartOptions<'line'> = {
-    responsive: true,
-    maintainAspectRatio: false,
-    scales: {
-      x: {
-        type: 'time',
-        time: {
-          unit: 'second',
-          displayFormats: {
-            second: 'HH:mm:ss'
-          }
-        },
-        ticks: {
-          display: true,
-          maxRotation: 0,
-          stepSize: 10 // Show label every 10 seconds
-        },
-        reverse: true,
-        min: timeRange.min,
-        max: timeRange.max
-      },
-      y: {
-        beginAtZero: true,
-        max: 100,
-        title: {
-          display: false
-        },
-        ticks: {
-          display: false
+  const chartData = useMemo<ChartData<'line', ChartPoint[]>>(() => {
+    const datasets = plottable
+      .filter((pid) => visiblePids.has(pid.name))
+      .map((pid) => {
+        const span = pid.max - pid.min || 1
+        const data: ChartPoint[] = []
+        for (const frame of recent) {
+          const signal = frame.signals.find((s) => s.name === pid.name)
+          if (!signal) continue
+          data.push({
+            x: frame.timestamp,
+            y: ((signal.value - pid.min) / span) * 100,
+            originalValue: signal.value,
+            unit: pid.unit,
+          })
         }
-      }
-    },
-    plugins: {
-      legend: {
-        display: false
-      },
-      tooltip: {
-        callbacks: {
-          label: (context) => {
-            const dataset = context.dataset
-            const point = dataset.data[context.dataIndex] as any
-            return `${dataset.label}: ${point.originalValue.toFixed(1)}${point.unit}`
-          }
+        return {
+          label: pid.name,
+          data,
+          borderColor: pid.color,
+          backgroundColor: pid.color,
+          tension: 0.1,
         }
-      }
-    }
-  }
+      })
+    return { datasets }
+  }, [plottable, recent, visiblePids])
+
+  const options = useMemo<ChartOptions<'line'>>(
+    () => ({
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
+      scales: {
+        x: {
+          type: 'time',
+          time: {
+            unit: 'second',
+            displayFormats: { second: 'HH:mm:ss' },
+          },
+          ticks: { display: true, maxRotation: 0, stepSize: 10 },
+          // Newest at the left, so the chart reads like the table.
+          reverse: true,
+          min: latest ? windowStart : undefined,
+          max: latest ? windowEnd : undefined,
+        },
+        y: {
+          beginAtZero: true,
+          max: 100,
+          title: { display: false },
+          ticks: { display: false },
+        },
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (context) => {
+              const point = context.raw as ChartPoint
+              return `${context.dataset.label ?? ''}: ${point.originalValue.toFixed(1)}${point.unit}`
+            },
+          },
+        },
+      },
+    }),
+    [latest, windowStart, windowEnd],
+  )
 
   return (
     <div className="pid-chart-container">
       <div className="pid-toggle-buttons">
-        {plottablePids.map(({ signal, color }) => (
-          <button
-            key={signal.name}
-            className={visiblePids.has(signal.name) ? 'active' : ''}
-            onClick={() => handleTogglePid(signal.name)}
-            style={{
-              borderColor: color,
-              borderWidth: '2px',
-              borderStyle: 'solid',
-              backgroundColor: visiblePids.has(signal.name) ? color : 'transparent',
-              color: visiblePids.has(signal.name) ? 'white' : color
-            }}
-          >
-            {signal.name}
-          </button>
-        ))}
+        {plottable.map((pid) => {
+          const active = visiblePids.has(pid.name)
+          return (
+            <button
+              type="button"
+              key={pid.name}
+              className={active ? 'active' : ''}
+              onClick={() => onTogglePid(pid.name)}
+              style={{
+                borderColor: pid.color,
+                borderWidth: '2px',
+                borderStyle: 'solid',
+                backgroundColor: active ? pid.color : 'transparent',
+                color: active ? 'white' : pid.color,
+              }}
+            >
+              {pid.name}
+            </button>
+          )
+        })}
       </div>
-      <div className="chart-container" style={{ height: '300px' }}>
+      <div className="chart-container">
         <Line data={chartData} options={options} />
       </div>
     </div>
   )
 }
 
-export default PIDChart 
+export default PIDChart

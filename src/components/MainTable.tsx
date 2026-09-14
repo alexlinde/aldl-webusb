@@ -1,149 +1,156 @@
-import { FC, useState, useEffect } from 'react'
-import { Signal, ProcessedFrame } from '../types/aldl'
+import { FC, useMemo, useState, useSyncExternalStore } from 'react'
+import { ProcessedFrame, Signal } from '../types/aldl'
 
 interface MainTableProps {
-  frame: ProcessedFrame
-  onFrameSelect: (frame: ProcessedFrame) => void
+  /** The ordered PID list to render one row per; from the signal template. */
+  rows: Signal[]
+  /** Oldest first, exactly as the store holds it. */
+  history: ProcessedFrame[]
+  /** Which column is selected, counted back from the newest frame. */
+  selectedOffset: number
+  onSelectOffset: (offset: number) => void
 }
 
-const MainTable: FC<MainTableProps> = ({ frame, onFrameSelect }) => {
-  const [selectedColumn, setSelectedColumn] = useState(0)
-  const [frameHistory, setFrameHistory] = useState<ProcessedFrame[]>([])
-  const [currentPage, setCurrentPage] = useState(0)
-  const [framesPerPage, setFramesPerPage] = useState(8)
+const NARROW_QUERY = '(max-width: 767px)'
 
-  useEffect(() => {
-    // Update frames per page based on screen width
-    const updateFramesPerPage = () => {
-      if (window.innerWidth < 768) {
-        setFramesPerPage(4)
-      } else {
-        setFramesPerPage(8)
-      }
-    }
+function subscribeToWidth(onChange: () => void): () => void {
+  const media = window.matchMedia(NARROW_QUERY)
+  media.addEventListener('change', onChange)
+  return () => media.removeEventListener('change', onChange)
+}
 
-    // Set initial value
-    updateFramesPerPage()
+function readFramesPerPage(): number {
+  return window.matchMedia(NARROW_QUERY).matches ? 4 : 8
+}
 
-    // Add resize listener
-    window.addEventListener('resize', updateFramesPerPage)
+function wideFramesPerPage(): number {
+  return 8
+}
 
-    // Cleanup
-    return () => window.removeEventListener('resize', updateFramesPerPage)
-  }, [])
+function formatClock(timestamp: number): string {
+  const date = new Date(timestamp)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+}
 
-  useEffect(() => {
-    updateTable(frame)
-  }, [frame])
+function hexOf(signal: Signal | undefined): string {
+  if (!signal) return ''
+  return signal.rawValue.toString(16).toUpperCase().padStart(2, '0')
+}
 
-  const updateTable = (frame: ProcessedFrame) => {
-    setFrameHistory(prev => {
-      // Skip adding the initial zero frame
-      if (frame.timestamp === null) {
-        return prev
-      }
-      return [frame, ...prev]
-    })
+function decodedOf(signal: Signal | undefined): string {
+  if (!signal) return ''
+  const value = signal.value.toFixed(signal.round)
+  return signal.unit ? `${value} ${signal.unit}` : value
+}
+
+const MainTable: FC<MainTableProps> = ({
+  rows,
+  history,
+  selectedOffset,
+  onSelectOffset,
+}) => {
+  const framesPerPage = useSyncExternalStore(
+    subscribeToWidth,
+    readFramesPerPage,
+    wideFramesPerPage,
+  )
+  const [requestedPage, setRequestedPage] = useState(0)
+
+  const pageCount = Math.max(1, Math.ceil(history.length / framesPerPage))
+  // Derived, so a shrinking history can never strand us on a missing page.
+  const page = Math.min(requestedPage, pageCount - 1)
+
+  /** One entry per column: the frame shown there, and its signals by name. */
+  const columns = useMemo(
+    () =>
+      Array.from({ length: framesPerPage }, (_, index) => {
+        const offset = page * framesPerPage + index
+        const frame = history[history.length - 1 - offset]
+        return {
+          offset,
+          frame,
+          byName: frame
+            ? new Map(frame.signals.map((signal) => [signal.name, signal]))
+            : null,
+        }
+      }),
+    [history, page, framesPerPage],
+  )
+
+  const selectedFrame = history[history.length - 1 - selectedOffset]
+  const selectedByName = useMemo(
+    () =>
+      selectedFrame
+        ? new Map(selectedFrame.signals.map((signal) => [signal.name, signal]))
+        : null,
+    [selectedFrame],
+  )
+
+  const selectedColumn =
+    Math.floor(selectedOffset / framesPerPage) === page
+      ? selectedOffset % framesPerPage
+      : -1
+
+  const goToPage = (next: number) => {
+    const clamped = Math.min(Math.max(next, 0), pageCount - 1)
+    setRequestedPage(clamped)
+    // Keep the same column selected as the table pages across history.
+    onSelectOffset(clamped * framesPerPage + (selectedOffset % framesPerPage))
   }
-
-  const updateSelectedFrame = (columnIndex: number, page: number) => {
-    const frameIndex = columnIndex + page * framesPerPage
-    if (frameIndex < frameHistory.length) {
-      onFrameSelect(frameHistory[frameIndex])
-    }
-  }
-
-  const selectColumn = (columnIndex: number) => {
-    setSelectedColumn(columnIndex)
-    updateSelectedFrame(columnIndex, currentPage)
-  }
-
-  const getDisplayValue = (value: Signal | undefined): string => {
-    if (!value || typeof value.rawValue === 'undefined') {
-      return ''
-    }
-    return value.rawValue.toString(16).toUpperCase().padStart(2, '0')
-  }
-
-  const getDecodedValue = (value: Signal | undefined): string => {
-    if (!value || typeof value.value === 'undefined' || typeof value.unit === 'undefined') {
-      return ''
-    }
-    return `${value.value.toFixed(value.round)} ${value.unit}`
-  }
-
-  const formatTimestamp = (timestamp: number | null): string => {
-    if (timestamp === null) return ''
-    return new Date(timestamp).toLocaleTimeString()
-  }
-
-  const handlePreviousPage = () => {
-    if (currentPage > 0) {
-      setCurrentPage(prev => prev - 1)
-      updateSelectedFrame(selectedColumn, currentPage - 1)
-    }
-  }
-
-  const handleNextPage = () => {
-    const maxPage = Math.floor(frameHistory.length / framesPerPage)
-    if (currentPage < maxPage) {
-      setCurrentPage(prev => prev + 1)
-      updateSelectedFrame(selectedColumn, currentPage + 1)
-    }
-  }
-
-  const getPageFrames = (): ProcessedFrame[] => {
-    const start = currentPage * framesPerPage
-    return frameHistory.slice(start, start + framesPerPage)
-  }
-
-  const pageFrames = getPageFrames()
 
   return (
     <div className="table-container">
       <div className="pagination-controls">
-        <button onClick={handlePreviousPage} disabled={currentPage === 0}>←</button>
-        <span>Page {currentPage + 1}</span>
-        <button onClick={handleNextPage} disabled={currentPage >= Math.floor(frameHistory.length / framesPerPage)}>→</button>
+        <button type="button" onClick={() => goToPage(page - 1)} disabled={page === 0}>
+          ←
+        </button>
+        <span>
+          Page {page + 1} / {pageCount}
+        </span>
+        <button
+          type="button"
+          onClick={() => goToPage(page + 1)}
+          disabled={page >= pageCount - 1}
+        >
+          →
+        </button>
       </div>
       <div className="table-responsive">
         <table className="aldl-table">
           <thead>
             <tr>
-              <th key="pid-header">PID</th>
-              {Array.from({ length: framesPerPage }, (_, i) => (
-                <th 
-                  key={`header-${i}`}
-                  className={i === selectedColumn ? 'selected' : ''}
-                  onClick={() => selectColumn(i)}
-                  title={pageFrames[i] ? formatTimestamp(pageFrames[i].timestamp) : ''}
+              <th>PID</th>
+              {columns.map((column, index) => (
+                <th
+                  key={column.offset}
+                  className={index === selectedColumn ? 'selected' : ''}
+                  onClick={() => onSelectOffset(column.offset)}
                 >
-                  -{i + currentPage * framesPerPage}
+                  <span className="header-offset">-{column.offset}</span>
+                  <span className="header-time">
+                    {column.frame ? formatClock(column.frame.timestamp) : '—'}
+                  </span>
                 </th>
               ))}
-              <th key="decoded-header">Value</th>
+              <th>Value</th>
             </tr>
           </thead>
           <tbody>
-            {frame.signals.map(signal => {
-              const selectedValue = pageFrames[selectedColumn]?.signals.find(s => s.name === signal.name)
-              return (
-                <tr key={`row-${signal.name}`}>
-                  <td key={`pid-${signal.name}`} title={signal.description}>{signal.name}</td>
-                  {Array.from({ length: framesPerPage }, (_, i) => (
-                    <td 
-                      key={`cell-${signal.name}-${i}`}
-                      className={i === selectedColumn ? 'selected' : ''}
-                    >
-                      {getDisplayValue(pageFrames[i]?.signals.find(s => s.name === signal.name))}
-                    </td>
-                  ))}
-                  <td key={`decoded-${signal.name}`}>
-                    {getDecodedValue(selectedValue)}
+            {rows.map((row) => (
+              <tr key={row.name}>
+                <td title={row.description}>{row.name}</td>
+                {columns.map((column, index) => (
+                  <td
+                    key={column.offset}
+                    className={index === selectedColumn ? 'selected' : ''}
+                  >
+                    {hexOf(column.byName?.get(row.name))}
                   </td>
-                </tr>
-              )
-            })}
+                ))}
+                <td>{decodedOf(selectedByName?.get(row.name))}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
@@ -151,4 +158,4 @@ const MainTable: FC<MainTableProps> = ({ frame, onFrameSelect }) => {
   )
 }
 
-export default MainTable 
+export default MainTable

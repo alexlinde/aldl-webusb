@@ -1,127 +1,190 @@
-import { FC, useState, useRef } from 'react'
-import { DataService } from '../services/dataService'
-import { USBInterface } from '../services/usbInterface'
+import { ChangeEvent, FC, useRef } from 'react'
+import { ConnectionStatus, PlaybackSpeed } from '../services/dataService'
 
 interface ControlPanelProps {
-  dataService: DataService | null
-  usbInterface: USBInterface
-  isConnected: boolean
-  isPlaying: boolean
-  onConnectionChange: (connected: boolean) => void
-  onPlaybackChange: (playing: boolean) => void
-  onTestDataLoaded: () => void
+  connection: ConnectionStatus
+  file: { name: string; frameCount: number; position: number } | null
+  playback: { isPlaying: boolean; speed: PlaybackSpeed }
+  historyLength: number
+  anyDevice: boolean
+  onAnyDeviceChange: (anyDevice: boolean) => void
+  onConnect: () => void
+  onDisconnect: () => void
+  onLoadFile: (file: File) => void
+  onCloseFile: () => void
+  onPlay: () => void
+  onPause: () => void
+  onStep: () => void
+  onRewind: () => void
+  onSpeedChange: (speed: PlaybackSpeed) => void
+  onDownloadLog: () => void
+  onClearHistory: () => void
 }
 
-export const ControlPanel: FC<ControlPanelProps> = ({
-  dataService,
-  usbInterface,
-  isConnected,
-  isPlaying,
-  onConnectionChange,
-  onPlaybackChange,
-  onTestDataLoaded
+const SPEEDS: PlaybackSpeed[] = [1, 5, 'max']
+
+function speedLabel(speed: PlaybackSpeed): string {
+  return speed === 'max' ? 'max' : `${speed}x`
+}
+
+function parseSpeed(value: string): PlaybackSpeed {
+  if (value === 'max') return 'max'
+  return value === '5' ? 5 : 1
+}
+
+const ControlPanel: FC<ControlPanelProps> = ({
+  connection,
+  file,
+  playback,
+  historyLength,
+  anyDevice,
+  onAnyDeviceChange,
+  onConnect,
+  onDisconnect,
+  onLoadFile,
+  onCloseFile,
+  onPlay,
+  onPause,
+  onStep,
+  onRewind,
+  onSpeedChange,
+  onDownloadLog,
+  onClearHistory,
 }) => {
-  const [hasTestData, setHasTestData] = useState(false)
-  const [hasMoreFrames, setHasMoreFrames] = useState(true)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleConnect = async () => {
-    if (!dataService) return
-    
-    try {
-      if (await usbInterface.connect()) {
-        onConnectionChange(true)
-        dataService.startLiveUpdates()
-      }
-    } catch (error) {
-      console.error('Failed to connect:', error)
-    }
-  }
+  // Everything below is derived from the store, so nothing can get stuck.
+  const unsupported = connection === 'unsupported'
+  const connected = connection === 'connected'
+  const connecting = connection === 'connecting'
+  const atEnd = file !== null && file.position >= file.frameCount
 
-  const handleDisconnect = () => {
-    if (!dataService) return
-    
-    dataService.stopLiveUpdates()
-    onConnectionChange(false)
-  }
-
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (!dataService || !event.target.files?.length) return
-    
-    try {
-      const file = event.target.files[0]
-      await dataService.loadTestDataFromFile(file)
-      setHasTestData(true)
-      setHasMoreFrames(true)
-      // Disconnect from USB if connected
-      if (isConnected) {
-        handleDisconnect()
-      }
-      dataService.stepTestData()
-      onTestDataLoaded()
-    } catch (error) {
-      console.error('Failed to load test data:', error)
-    }
-  }
-
-  const handlePlayTestData = () => {
-    if (!dataService) return
-    
-    dataService.playTestData()
-    onPlaybackChange(true)
-  }
-
-  const handlePauseTestData = () => {
-    if (!dataService) return
-    
-    dataService.pauseTestData()
-    onPlaybackChange(false)
-  }
-
-  const handleStepTestData = () => {
-    if (!dataService) return
-    
-    const signals = dataService.stepTestData()
-    // If no signals returned, we've reached the end
-    if (signals === null) {
-      setHasMoreFrames(false)
-    }
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const input = event.target
+    const chosen = input.files?.[0]
+    // Reset the input so picking the same file again still fires onChange.
+    input.value = ''
+    if (chosen) onLoadFile(chosen)
   }
 
   return (
     <div className="controls">
-      <div className="connection-controls">
-        {!isConnected ? (
-          <button onClick={handleConnect} disabled={hasTestData}>Connect to USB</button>
+      <div className="control-group">
+        {connected ? (
+          <button type="button" onClick={onDisconnect}>
+            Disconnect
+          </button>
         ) : (
-          <button onClick={handleDisconnect}>Disconnect</button>
+          <button
+            type="button"
+            onClick={onConnect}
+            disabled={unsupported || connecting || file !== null}
+            title={
+              unsupported
+                ? 'Web Serial needs Chrome or Edge on a desktop computer.'
+                : file !== null
+                  ? 'Close the log file first.'
+                  : undefined
+            }
+          >
+            {connecting ? 'Connecting…' : 'Connect'}
+          </button>
         )}
+        <label className="checkbox-label" title="Show every serial device in the chooser, not just known ALDL cables.">
+          <input
+            type="checkbox"
+            checked={anyDevice}
+            disabled={unsupported || connected || connecting}
+            onChange={(event) => onAnyDeviceChange(event.target.checked)}
+          />
+          any device
+        </label>
       </div>
-      <div className="test-data-controls">
+
+      <div className="control-group">
         <input
           type="file"
           ref={fileInputRef}
-          onChange={handleFileUpload}
-          accept=".json"
+          onChange={handleFileChange}
+          accept=".json,application/json"
           style={{ display: 'none' }}
         />
-        <button 
-          onClick={() => fileInputRef.current?.click()} 
-          disabled={isConnected || hasTestData}
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={connected || connecting}
         >
-          Upload Test Data
+          Load log file
         </button>
-        {hasTestData && (
+        {file !== null && (
           <>
-            {!isPlaying ? (
-              <button onClick={handlePlayTestData}>Play Test Data</button>
+            <button type="button" onClick={onCloseFile}>
+              Close file
+            </button>
+            {playback.isPlaying ? (
+              <button type="button" onClick={onPause}>
+                Pause
+              </button>
             ) : (
-              <button onClick={handlePauseTestData}>Pause Test Data</button>
+              <button type="button" onClick={onPlay} disabled={file.frameCount === 0}>
+                Play
+              </button>
             )}
-            <button onClick={handleStepTestData} disabled={isPlaying || !hasMoreFrames}>Step Test Data</button>
+            <button
+              type="button"
+              onClick={onStep}
+              disabled={playback.isPlaying || atEnd}
+            >
+              Step
+            </button>
+            <button
+              type="button"
+              onClick={onRewind}
+              disabled={file.position === 0}
+            >
+              Rewind
+            </button>
+            <label className="speed-label">
+              Speed
+              <select
+                value={String(playback.speed)}
+                onChange={(event) => onSpeedChange(parseSpeed(event.target.value))}
+              >
+                {SPEEDS.map((speed) => (
+                  <option key={String(speed)} value={String(speed)}>
+                    {speedLabel(speed)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <span className="frame-counter">
+              frame {file.position} / {file.frameCount}
+              {atEnd && !playback.isPlaying && file.frameCount > 0
+                ? ' (end)'
+                : ''}
+            </span>
           </>
         )}
       </div>
+
+      <div className="control-group">
+        <button
+          type="button"
+          onClick={onDownloadLog}
+          disabled={historyLength === 0}
+        >
+          Download log
+        </button>
+        <button
+          type="button"
+          onClick={onClearHistory}
+          disabled={historyLength === 0}
+        >
+          Clear history
+        </button>
+      </div>
     </div>
   )
-} 
+}
+
+export default ControlPanel
