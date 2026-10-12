@@ -5,6 +5,7 @@ import App from './App'
 import { ALDLProcessor } from './services/aldlProcessor'
 import { SerialInterface } from './services/serialInterface'
 import { DataService } from './services/dataService'
+import { installDebugHook } from './debugHook'
 
 /**
  * The services live at module scope, not in component state: they own a serial
@@ -13,6 +14,8 @@ import { DataService } from './services/dataService'
  */
 const processor = new ALDLProcessor()
 const dataService = new DataService(processor, new SerialInterface())
+
+installDebugHook(dataService, processor)
 
 const container = document.getElementById('root')
 if (!container) throw new Error('No #root element to mount into.')

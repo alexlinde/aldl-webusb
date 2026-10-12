@@ -4,6 +4,7 @@ import {
   Chart as ChartJS,
   ChartData,
   ChartOptions,
+  Plugin,
   LineElement,
   LinearScale,
   PointElement,
@@ -17,6 +18,30 @@ ChartJS.register(LinearScale, TimeScale, PointElement, LineElement, Tooltip)
 
 /** How much of the history the chart shows, in milliseconds. */
 const WINDOW_MS = 60_000
+
+/** Colour of the vertical lines drawn at event markers. */
+const MARKER_COLOR = 'rgba(128, 128, 128, 0.7)'
+
+/** Draws a thin vertical line at the timestamp of each noted frame. */
+const markerPlugin: Plugin<'line'> = {
+  id: 'eventMarkers',
+  afterDatasetsDraw(chart, _args, options) {
+    const times = (options as { times?: number[] }).times ?? []
+    const { ctx, chartArea, scales } = chart
+    ctx.save()
+    ctx.strokeStyle = MARKER_COLOR
+    ctx.lineWidth = 1
+    for (const time of times) {
+      const x = scales.x.getPixelForValue(time)
+      if (x < chartArea.left || x > chartArea.right) continue
+      ctx.beginPath()
+      ctx.moveTo(x, chartArea.top)
+      ctx.lineTo(x, chartArea.bottom)
+      ctx.stroke()
+    }
+    ctx.restore()
+  },
+}
 
 /** One plotted sample: normalised for the axis, raw for the tooltip. */
 interface ChartPoint {
@@ -116,6 +141,11 @@ const PIDChart: FC<PIDChartProps> = ({
     return { datasets }
   }, [plottable, recent, visiblePids])
 
+  const noteTimes = useMemo(
+    () => recent.filter((frame) => frame.note).map((frame) => frame.timestamp),
+    [recent],
+  )
+
   const options = useMemo<ChartOptions<'line'>>(
     () => ({
       responsive: true,
@@ -143,6 +173,7 @@ const PIDChart: FC<PIDChartProps> = ({
       },
       plugins: {
         legend: { display: false },
+        eventMarkers: { times: noteTimes },
         tooltip: {
           callbacks: {
             label: (context) => {
@@ -153,7 +184,7 @@ const PIDChart: FC<PIDChartProps> = ({
         },
       },
     }),
-    [latest, windowStart, windowEnd],
+    [latest, windowStart, windowEnd, noteTimes],
   )
 
   return (
@@ -181,7 +212,7 @@ const PIDChart: FC<PIDChartProps> = ({
         })}
       </div>
       <div className="chart-container">
-        <Line data={chartData} options={options} />
+        <Line data={chartData} options={options} plugins={[markerPlugin]} />
       </div>
     </div>
   )

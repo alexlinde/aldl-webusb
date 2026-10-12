@@ -362,4 +362,86 @@ describe('DataService', () => {
     )
     expect(service.getSnapshot().connection).toBe('unsupported')
   })
+
+  describe('addNote', () => {
+    function feed(serial: StubSerial, count = 2) {
+      for (let i = 0; i < count; i++) {
+        serial.onFrame?.(Uint8Array.from(ENTRIES[i].frame), 1000 + i)
+      }
+    }
+
+    it('attaches the note to the latest frame', () => {
+      const { service, serial } = makeService()
+      feed(serial)
+      expect(service.addNote('  unplugged IAC ')).toBe(true)
+      const { history, latest } = service.getSnapshot()
+      expect(latest?.note).toBe('unplugged IAC')
+      expect(history[1]).toBe(latest)
+      expect(history[0].note).toBeUndefined()
+    })
+
+    it('returns false with no data or blank text', () => {
+      const { service, serial } = makeService()
+      const before = service.getSnapshot()
+      expect(service.addNote('hello')).toBe(false)
+      expect(service.getSnapshot()).toBe(before)
+
+      feed(serial)
+      const snapshot = service.getSnapshot()
+      expect(service.addNote('   ')).toBe(false)
+      expect(service.addNote('')).toBe(false)
+      expect(service.getSnapshot()).toBe(snapshot)
+    })
+
+    it('appends to an existing note with a semicolon', () => {
+      const { service, serial } = makeService()
+      feed(serial)
+      service.addNote('air filter off')
+      service.addNote('carb cleaner')
+      expect(service.getSnapshot().latest?.note).toBe(
+        'air filter off; carb cleaner',
+      )
+    })
+
+    it('does not mutate snapshots already handed out', () => {
+      const { service, serial } = makeService()
+      feed(serial)
+      const before = service.getSnapshot()
+      const frame = before.latest
+      service.addNote('marker')
+      expect(before.history).toHaveLength(2)
+      expect(before.history[1]).toBe(frame)
+      expect(frame?.note).toBeUndefined()
+      expect(service.getSnapshot()).not.toBe(before)
+      expect(service.getSnapshot().history).not.toBe(before.history)
+    })
+
+    it('exports the note only on frames that have one', () => {
+      const { service, serial } = makeService()
+      feed(serial)
+      service.addNote('marker')
+      const [first, second] = service.exportLog()
+      expect('note' in first).toBe(false)
+      expect(second.note).toBe('marker')
+    })
+
+    it('round-trips a note through loadFile', async () => {
+      const { service } = makeService()
+      await service.loadFile(
+        makeFile([ENTRIES[0], { ...ENTRIES[1], note: 'sprayed gasket' }]),
+      )
+      service.step()
+      expect(service.getSnapshot().latest?.note).toBeUndefined()
+      service.step()
+      expect(service.getSnapshot().latest?.note).toBe('sprayed gasket')
+    })
+
+    it('rejects a non-string note in a loaded file', async () => {
+      const { service } = makeService()
+      await service.loadFile(makeFile([{ ...ENTRIES[0], note: 5 }]))
+      const snapshot = service.getSnapshot()
+      expect(snapshot.file).toBeNull()
+      expect(snapshot.error).toMatch(/does not look like an ALDL log/)
+    })
+  })
 })

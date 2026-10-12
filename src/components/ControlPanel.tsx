@@ -1,4 +1,4 @@
-import { ChangeEvent, FC, useRef } from 'react'
+import { ChangeEvent, FC, FormEvent, useRef, useState } from 'react'
 import { ConnectionStatus, PlaybackSpeed } from '../services/dataService'
 
 interface ControlPanelProps {
@@ -19,6 +19,8 @@ interface ControlPanelProps {
   onSpeedChange: (speed: PlaybackSpeed) => void
   onDownloadLog: () => void
   onClearHistory: () => void
+  /** Returns true when the note was attached to a frame. */
+  onAddNote: (text: string) => boolean
 }
 
 const SPEEDS: PlaybackSpeed[] = [1, 5, 'max']
@@ -50,8 +52,10 @@ const ControlPanel: FC<ControlPanelProps> = ({
   onSpeedChange,
   onDownloadLog,
   onClearHistory,
+  onAddNote,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [noteText, setNoteText] = useState('')
 
   // Everything below is derived from the store, so nothing can get stuck.
   const unsupported = connection === 'unsupported'
@@ -65,6 +69,11 @@ const ControlPanel: FC<ControlPanelProps> = ({
     // Reset the input so picking the same file again still fires onChange.
     input.value = ''
     if (chosen) onLoadFile(chosen)
+  }
+
+  const handleNoteSubmit = (event: FormEvent) => {
+    event.preventDefault()
+    if (onAddNote(noteText)) setNoteText('')
   }
 
   return (
@@ -166,6 +175,24 @@ const ControlPanel: FC<ControlPanelProps> = ({
           </>
         )}
       </div>
+
+      <form className="control-group" onSubmit={handleNoteSubmit}>
+        <input
+          type="text"
+          className="note-input"
+          value={noteText}
+          onChange={(event) => setNoteText(event.target.value)}
+          placeholder="Event note, e.g. unplugged IAC"
+          aria-label="Event note"
+          disabled={historyLength === 0}
+        />
+        <button
+          type="submit"
+          disabled={historyLength === 0 || noteText.trim() === ''}
+        >
+          Mark
+        </button>
+      </form>
 
       <div className="control-group">
         <button

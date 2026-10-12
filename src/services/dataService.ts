@@ -267,12 +267,17 @@ export class DataService {
     const nextPosition = file.position + 1
     const atEnd = nextPosition >= file.frameCount
 
-    this.appendFrame(raw, entryTime(entry), {
-      file: { ...file, position: nextPosition },
-      playback: atEnd
-        ? { isPlaying: false, speed: this.snapshot.playback.speed }
-        : this.snapshot.playback,
-    })
+    this.appendFrame(
+      raw,
+      entryTime(entry),
+      {
+        file: { ...file, position: nextPosition },
+        playback: atEnd
+          ? { isPlaying: false, speed: this.snapshot.playback.speed }
+          : this.snapshot.playback,
+      },
+      entry.note,
+    )
 
     if (atEnd) this.stopTimer()
     return !atEnd
@@ -291,11 +296,13 @@ export class DataService {
     raw: Uint8Array,
     timestamp: number,
     extra: Partial<DataSnapshot> = {},
+    note?: string,
   ): void {
     const frame: ProcessedFrame = {
       timestamp,
       raw,
       signals: this.processor.processFrame(raw),
+      ...(note ? { note } : {}),
     }
 
     const history = this.snapshot.history.concat(frame)
@@ -304,6 +311,27 @@ export class DataService {
     }
 
     this.update({ ...extra, history, latest: frame })
+  }
+
+  /**
+   * Attach an event marker to the latest frame (appended with '; ' if it
+   * already has one). Returns false when the text is blank or there is no data.
+   */
+  addNote(text: string): boolean {
+    const note = text.trim()
+    const latest = this.snapshot.latest
+    if (note.length === 0 || latest === null) return false
+
+    const marked: ProcessedFrame = {
+      ...latest,
+      note: latest.note ? `${latest.note}; ${note}` : note,
+    }
+    const history = this.snapshot.history.slice()
+    // latest is always the last frame in history, but stay safe if it is not.
+    const index = history.lastIndexOf(latest)
+    if (index >= 0) history[index] = marked
+    this.update({ history, latest: marked })
+    return true
   }
 
   clearHistory(): void {
@@ -321,6 +349,7 @@ export class DataService {
     return this.snapshot.history.map((frame) => ({
       timestamp: new Date(frame.timestamp).toISOString(),
       frame: Array.from(frame.raw),
+      ...(frame.note ? { note: frame.note } : {}),
     }))
   }
 
@@ -375,7 +404,12 @@ function validateLog(parsed: unknown): LogEntry[] | null {
       if (typeof byte !== 'number' || !Number.isInteger(byte)) return null
       if (byte < 0 || byte > 255) return null
     }
-    entries.push({ timestamp: entry.timestamp, frame: entry.frame })
+    if (entry.note !== undefined && typeof entry.note !== 'string') return null
+    entries.push({
+      timestamp: entry.timestamp,
+      frame: entry.frame,
+      ...(entry.note !== undefined ? { note: entry.note } : {}),
+    })
   }
   return entries
 }

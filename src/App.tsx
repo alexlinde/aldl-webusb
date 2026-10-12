@@ -1,4 +1,11 @@
-import { FC, useCallback, useMemo, useState, useSyncExternalStore } from 'react'
+import {
+  FC,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from 'react'
 import './App.css'
 import MainTable from './components/MainTable'
 import BitFieldsTable from './components/BitFieldsTable'
@@ -82,6 +89,19 @@ const App: FC<AppProps> = ({ processor, dataService }) => {
   const selectedFrame = history[history.length - 1 - selectedOffset] ?? latest
   const selectedSignals = selectedFrame ? selectedFrame.signals : template
 
+  // Closing the tab would silently lose a live log, including one left behind
+  // when the cable dropped out. Data played from a file is already on disk.
+  const unsavedData = file === null && history.length > 0
+  useEffect(() => {
+    if (!unsavedData) return
+    const warn = (event: BeforeUnloadEvent) => {
+      event.preventDefault()
+      event.returnValue = ''
+    }
+    window.addEventListener('beforeunload', warn)
+    return () => window.removeEventListener('beforeunload', warn)
+  }, [unsavedData])
+
   const chartPidSet = useMemo(() => new Set(chartPids), [chartPids])
   const bitPidSet = useMemo(() => new Set(bitPids), [bitPids])
 
@@ -134,6 +154,11 @@ const App: FC<AppProps> = ({ processor, dataService }) => {
     setSelectedOffset(0)
   }, [dataService])
 
+  const handleAddNote = useCallback(
+    (text: string) => dataService.addNote(text),
+    [dataService],
+  )
+
   const handleClearError = useCallback(() => {
     dataService.clearError()
   }, [dataService])
@@ -172,12 +197,14 @@ const App: FC<AppProps> = ({ processor, dataService }) => {
           onSpeedChange={handleSpeed}
           onDownloadLog={handleDownloadLog}
           onClearHistory={handleClearHistory}
+          onAddNote={handleAddNote}
         />
         <StatusBar
           connection={connection}
           file={file}
           historyLength={history.length}
           framingErrors={framingErrors}
+          history={history}
         />
         <div className="grid">
           <MainTable

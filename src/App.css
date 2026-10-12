@@ -85,6 +85,18 @@
   font-family: inherit;
 }
 
+.app .note-input {
+  width: 16rem;
+  max-width: 100%;
+  padding: 0.35rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+
 .title {
   font-size: 1.5rem;
   font-weight: bold;
@@ -140,6 +152,17 @@
 }
 
 .status-item {
+  white-space: nowrap;
+}
+
+.status-notes {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  white-space: normal;
+}
+
+.status-note {
   white-space: nowrap;
 }
 

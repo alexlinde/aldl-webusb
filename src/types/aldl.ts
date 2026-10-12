@@ -71,6 +71,8 @@ export interface ProcessedFrame {
   /** The FRAME_LENGTH raw bytes this was decoded from. */
   raw: Uint8Array
   signals: Signal[]
+  /** Event marker the user dropped on this frame. */
+  note?: string
 }
 
 /**
@@ -81,4 +83,6 @@ export interface ProcessedFrame {
 export interface LogEntry {
   timestamp: string
   frame: number[]
+  /** Event marker; omitted when the frame has none. */
+  note?: string
 }
