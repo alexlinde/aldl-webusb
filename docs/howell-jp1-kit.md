@@ -102,6 +102,8 @@ The TBI ports are lettered **A, B, C, F, J** (the PDF's "AD" and "FD" are OCR ar
 | **F** | Manifold | MAP sensor only | Rear of TBI; no tees; 12" max hose |
 | B, J | | Not mentioned in the guide | |
 
+Stock GM use of the same ports, for comparison (**forum-sourced, not factory**: a 2010-era post quoting an '88 Camaro emissions sticker; assignments varied by year and engine): **A** canister purge (ported), **B** air cleaner, **C** PCV, **F** MAP, **J** EGR (another poster says AIR solenoid). Howell's A/C/F use matches the vacuum type GM used on those ports. B and J are unused on the Jeep and should be **capped**; an open or split cap is a vacuum leak at the TBI. Sources: [ThirdGen: TBI vacuum lines](https://www.thirdgen.org/forums/tbi/613252-tbi-vacuem-lines-location.html), [ThirdGen: evap and TBI](https://www.thirdgen.org/forums/dfi-ecm/640398-question-about-evap-system.html).
+
 ### Dual CTO valve
 
 ![CTO valve vacuum connections](images/howell-cto-valve.png)
