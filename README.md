@@ -1,6 +1,6 @@
 # ALDL WebUSB Interface
 
-A modern web interface for reading GM's [Assembly Line Diagnostic Link](https://en.wikipedia.org/wiki/ALDL) 160 baud interface, using the [Web Serial API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Serial_API) right from the browser. This tool is designed to work with an FTDI FT232R-based ALDL cable (like those from [aldlcable.com](http://aldlcable.com/)).
+A modern web interface for reading GM's [Assembly Line Diagnostic Link](https://en.wikipedia.org/wiki/ALDL) 160 baud interface, using the [Web Serial API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Serial_API) right from the browser. This tool is designed to work with an FTDI FT232R-based ALDL cable (like those from [aldlcables.com](https://aldlcables.com/collections/aldl-obd1-cables)).
 
 I bought a [Howell TBI kit](https://howellefi.com/product/tbi-kit-1981-86-cj-4-2l-emissions-legal/) for my 88 Jeep YJ which included a GM 1227747 ECU. This pre-dates OBD2 and includes an ALDL 12-pin interface that transmits serial-ish data at 160 baud. While you can read the MALF codes with a paperclip, I wanted to be able to see and plot the data from the sensors to diagnose the issue and check everything was running smoothly.
 
@@ -20,8 +20,14 @@ Visit **https://aldl.somefamilies.com** to use the tool live.
 ## Requirements
 
 - A desktop browser with Web Serial API support (Chrome or Edge — Firefox and Safari are not supported)
-- An FTDI-based ALDL cable, such as those from [aldlcable.com](http://aldlcable.com/)
+- An FTDI-based ALDL cable, such as those from [aldlcables.com](https://aldlcables.com/collections/aldl-obd1-cables) — or build one: see [docs/aldl-cable.md](docs/aldl-cable.md)
 - A GM vehicle with a 160 baud ALDL diagnostic port — data is read on pin E of the ALDL connector, per the [A058 spec](docs/A058.txt)
+
+## Reference docs
+
+- [docs/aldl-cable.md](docs/aldl-cable.md): buying or building the 160-baud USB cable (pinout, wiring, signal)
+- [docs/howell-jp1-kit.md](docs/howell-jp1-kit.md): Howell JP-1 TBI kit specs, vacuum routing, wiring and troubleshooting, summarized from Howell's install guide
+- [docs/A058.txt](docs/A058.txt): GM A058 data stream specification
 
 ## How it works
 
