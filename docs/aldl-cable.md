@@ -36,7 +36,8 @@ Pin functions vary between vehicles and harnesses; the Howell harness follows th
 
 - An FTDI FT232R USB-to-TTL adapter at **5 V logic**: e.g. FTDI's **TTL-232R-5V** cable, or an FT232RL breakout with its VCCIO jumper set to 5 V. (FT232R inputs are 5 V tolerant when VCCIO is 5 V.) Other bridges (CP2102, CH340) may work if the OS allows 1600 baud; the web app's device filter includes them, but they are untested.
 - A GM 12-pin ALDL mating connector or two crimp pins (bare pins pushed into the cavities work for a bench lead).
-- Optional, recommended: a **1–4.7 kΩ series resistor** on the data line to protect the ECM output and the FTDI input. *(Inferred good practice, not from a GM document.)*
+- Recommended: a **4.7 kΩ series resistor** on the data line (see [Protection](#protection)).
+- Optional: a **USB isolator** (ADuM3160-based or similar, full-speed 12 Mbit/s) between the laptop and the FTDI adapter (see [Protection](#protection)).
 - Optional: 10 kΩ resistor + switch between A and B for ECMs that need ALDL mode.
 
 ### Wiring
@@ -44,13 +45,37 @@ Pin functions vary between vehicles and harnesses; the Howell harness follows th
 | FTDI side | ALDL pin |
 |---|---|
 | GND | **A** |
-| RXD (via the optional series resistor) | **E** |
+| RXD, through the 4.7 kΩ series resistor | **E** |
 | TXD | not connected (160 baud is receive-only) |
 | VCC / 5 V | **not connected** — the ECM powers its own line |
 
 No inverter or level shifter. The ECM's data line idles high (≈5 V) and pulls low for each bit — the same idle polarity as a TTL UART, so the FTDI sees each ALDL bit's falling edge as a UART start bit. The bit inversion happens in software (`ALDLBitDecoder`).
 
 Classic RS-232 interfaces (e.g. the Tech Edge two-transistor design) put an inverting transistor stage in front of a ±12 V serial port. Those output the opposite polarity and **will not work** with this project's decoder without inverting the sampled bit.
+
+### Protection
+
+An FTDI adapter has only the chip's own ESD protection. Nothing in it is designed for automotive use, and it gives **no isolation**: the cable connects vehicle ground (pin A) directly to the laptop's USB ground.
+
+**Miswiring (the likely failure).** The FT232R input tolerates about 5 V at 5 V VCCIO. Some vehicles carry 12 V on pin G. If the data lead reaches 12 V, the input's clamp diodes conduct whatever the source can supply, and the chip probably fails.
+
+- A **4.7 kΩ series resistor** limits that current to about 1.5 mA, which the clamps survive.
+- At 160 baud the resistor has no effect on the signal.
+- This protects the cable. The laptop's USB port is unlikely to be harmed either way.
+
+**Ground loops and transients (the laptop risk).** Ground current can flow through the cable's ground and the laptop's USB port in two situations:
+
+- The laptop is on a mains charger whose ground is earthed, while the vehicle is on a battery charger or jump pack.
+- A cranking or ignition transient couples onto pins A or E. This is unlikely with a solid ECM ground, but possible.
+
+To guard against both:
+
+- **Run the laptop on battery** while it's connected to the vehicle, with nothing else tying it to mains or to the car.
+- For full protection, add a **USB isolator** between the laptop and the adapter. It breaks the ground path completely.
+
+Commercial ALDL cables are not known to include an isolator; the internals of the one used here are unknown.
+
+*(This section is general electronics practice, not from a GM document.)*
 
 ### Verify before plugging into the computer
 
