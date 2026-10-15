@@ -10,7 +10,7 @@ Reference summary, kept in case Howell stops publishing the install guide. Summa
 | Phone / fax | 810-765-5100 / 810-765-1503 (phone support 8:30-18:00 Eastern, per the PDF) |
 | Emissions status | CARB Executive Order D-452 (the JP-1 kit carries an E.O. tag and an under-hood decal) |
 
-OCR caveats are marked **[OCR?]**. Inferences not stated in the source are marked **[inferred]**. The PDF's three diagrams (vacuum schematic, CTO valve connections, Dura-Spark wiring) are reproduced in `docs/images/` from the owner's copy and transcribed below.
+OCR'd values were checked against the original PDF by the owner (Oct 2026). Inferences not stated in the source are marked **[inferred]**. The PDF's three diagrams (vacuum schematic, CTO valve connections, Dura-Spark wiring) are reproduced in `docs/images/` from the owner's copy and transcribed below.
 
 ## What the kit is
 
@@ -72,7 +72,7 @@ To be emissions legal the Jeep must still have a working catalytic converter, EG
 | ECM power | Switched 12 V hot in both CRANK and RUN (not ACC). Within 1 V of battery (install check) and within 0.5 V while running (troubleshooting check). 14 or 16 ga from fuse block |
 | ECM location | Needs air circulation; do not bury under carpet |
 | Scanner entry | 1988 or 1989 GM light-duty truck; 4.3L V6, engine code **Z** |
-| Alt. scanner VIN digits | 3rd digit **C**, 8th digit **Z**, 10th digit **J or K** [OCR?: stray space in "C ", J/K read as year codes 1988/1989, inferred] |
+| Alt. scanner VIN digits | 3rd digit **C**, 8th digit **Z**, 10th digit **J or K** |
 | Throttle linkage | Ball stud on throttle lever plate; integral torsion return spring, no separate spring. Check WOT, bend vertical linkage to clear EGR; later Jeeps may need the ball stud on the inboard side; link plate may need grinding or the power-brake fitting replaced for clearance |
 | Install time | 6-12 hours (their estimate) |
 
@@ -93,11 +93,14 @@ The schematic (legend: thick black = **ported** vacuum, hollow = **manifold** va
 - **Canister:** FROM FUEL TANK line in; one tube **capped**; CAN PURGE to manifold vacuum (PCV line); the round **PURGE SIGNAL** port on top gets **ported** vacuum from the Dual CTO valve.
 - **EGR** gets **ported** vacuum from the Dual CTO valve.
 
+The TBI ports are lettered **A, B, C, F, J** (the PDF's "AD" and "FD" are OCR artifacts: a stray box character after the letter).
+
 | TBI port | Vacuum | Goes to | Notes |
 |---|---|---|---|
-| **A** / **AD** | Ported | Dual CTO valve, tee to distributor advance | Text says "CTO valve gets vacuum from port A" and "distributor vacuum is teed into the line from port AD to the CTO valve". The schematic shows one ported line feeding both, so A and AD are most likely the same port **[inferred from schematic; confirm the casting]** |
+| **A** | Ported | Dual CTO valve, with a tee to the distributor vacuum advance | |
 | **C** | Manifold (full-time) | PCV line (3/8" port), canister purge teed in | |
-| **FD** | Manifold | MAP sensor only | Rear of TBI; no tees; 12" max. **[OCR?]** "FD" could be a misread of "PD"/"FP" |
+| **F** | Manifold | MAP sensor only | Rear of TBI; no tees; 12" max hose |
+| B, J | | Not mentioned in the guide | |
 
 ### Dual CTO valve
 
@@ -121,7 +124,7 @@ Other connections:
 - Everything else (transfer case vacuum switch, A/C controls, brake booster, etc.) connects directly to the intake manifold, not the TBI.
 - Crankcase vent line from the rear of the rocker cover goes to the bottom of the air cleaner (filtered air).
 - Intake manifold heater (late models): on below 160 F when running; keep it working. Its blue wire from the relay (right of the battery) needs switched 12 V, or run direct power through a switch.
-- Allen-bolt heads on the adaptor: mound RTV on top of each bolt head (a 1/4"-3/8" mound **[OCR?]** "%"-3/8"") and let it set 4-24 h to avoid vacuum leaks.
+- Allen-bolt heads on the adaptor: mound RTV on top of each bolt head (a 1/4"-3/8" mound) and let it set 4-24 h to avoid vacuum leaks.
 
 ## Wiring
 
@@ -161,7 +164,7 @@ Text notes:
 - Remove the old carb computer and its harness; three wires stay on the engine harness plus manifold heater relay wiring: coolant temp sender (purple, left rear of valve cover), manifold heater (pink), manifold heater switch (light green-black).
 - Locations are numbered on the back of the old computer connector (remove the black retainer clip). Wire **47** (light green-black, orange on some) is cut and spliced to **59** (orange) at/near the main harness junction. Wire **18** (purple) is cut and spliced to the supplied ignition-module jumper wire. Some models need a direct splice at the module connector (purple). Earlier Jeeps may lack the numbered connector, the same colors, or the Dura-Spark module connector.
 - 1987-91 jumper: unplug the 2- and 4-pin connectors from the ignition module (under the coolant bottle), release the 4-pin lock, put the jumper in the open **"C"** position, relock, run the jumper to the junction and splice to 18. Reconnect.
-- Keeping the old wire marked "A1" or "A57" (yellow) gives a switched 12 V source option. **[OCR?]** Text reads `Al" OR A57"`; "A1" inferred.
+- Keeping the old wire marked "A1" or "A57" (yellow) gives a switched 12 V source option.
 - Remaining wires from the old computer connector are cut and removed.
 
 ## Start-up and learning
@@ -200,7 +203,7 @@ Text notes:
 2. **Rich / black smoke at idle and low speed:** check for excess return pressure putting TBI fuel pressure above 12 psi.
 3. **Decel off-idle stall, idle drop, or low rolling idle:** use the Idle Air Adjustment below.
 
-If none of this resolves it, contact Howell (phone above; PDF gives an e-mail of the form `mhowell@howell-efi.com` **[OCR?]** OCR read "mhovveIl@howell-efi.com", spelling inferred).
+If none of this resolves it, contact Howell (phone above; e-mail `mhowell@howell-efi.com`).
 
 ## Idle air adjustment (throttle stop screw)
 
