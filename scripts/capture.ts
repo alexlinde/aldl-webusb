@@ -65,6 +65,7 @@ async function main(): Promise<void> {
 
   const processor = new ALDLProcessor()
   let frames = 0
+  let startT: number | undefined
   let lastErrors = 0
   let closed = false
 
@@ -80,7 +81,8 @@ async function main(): Promise<void> {
         signals: processor.processFrame(frame),
         note,
       })
-      const lines = formatRows([row]).split('\n')
+      startT ??= row.t
+      const lines = formatRows([row], { startT }).split('\n')
       if ((frames - 1) % HEADER_EVERY === 0) console.log(lines[0])
       console.log(lines[1])
     }

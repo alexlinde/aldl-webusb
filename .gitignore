@@ -37,3 +37,6 @@ yarn-error.log*
 # TypeScript
 *.tsbuildinfo
 .env*
+
+# Local capture sessions (logs, notes, write-ups)
+logs/
