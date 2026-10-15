@@ -10,7 +10,7 @@ Reference summary, kept in case Howell stops publishing the install guide. Summa
 | Phone / fax | 810-765-5100 / 810-765-1503 (phone support 8:30-18:00 Eastern, per the PDF) |
 | Emissions status | CARB Executive Order D-452 (the JP-1 kit carries an E.O. tag and an under-hood decal) |
 
-OCR caveats are marked **[OCR?]**. Inferences not stated in the source are marked **[inferred]**. The PDF's figures (vacuum schematic, Dura-Spark wiring diagram on p.12) did not survive text extraction; only their captions/labels are available.
+OCR caveats are marked **[OCR?]**. Inferences not stated in the source are marked **[inferred]**. The PDF's three diagrams (vacuum schematic, CTO valve connections, Dura-Spark wiring) are reproduced in `docs/images/` from the owner's copy and transcribed below.
 
 ## What the kit is
 
@@ -82,18 +82,39 @@ GM 10" open element 12342081 / 12342082; K&N 9" 60-1120 / 60-1110; K&N 7" x 2" 6
 
 ## Vacuum routing
 
-Port letters are cast/lettered on the TBI. The Howell vacuum schematic (not extractable) legend distinguishes **ported** and **manifold** vacuum. The under-hood diagram is based on a 1990 Wrangler; earlier years vary slightly.
+Port letters are cast/lettered on the TBI. The under-hood diagram is based on a 1990 Wrangler; earlier years vary slightly.
 
-| TBI port | Goes to | Notes |
+![Howell vacuum schematic](images/howell-vacuum-schematic.png)
+
+The schematic (legend: thick black = **ported** vacuum, hollow = **manifold** vacuum) shows:
+
+- **One ported-vacuum port on the TBI** feeding a single ported line that tees to the **distributor vacuum advance** and continues to the **Dual CTO valve**. So the distributor advance is on **ported** vacuum: next to nothing at closed-throttle idle.
+- **Manifold vacuum** from the TBI to the **PCV valve** line, with the canister's **CAN PURGE** tube teed into it.
+- **Canister:** FROM FUEL TANK line in; one tube **capped**; CAN PURGE to manifold vacuum (PCV line); the round **PURGE SIGNAL** port on top gets **ported** vacuum from the Dual CTO valve.
+- **EGR** gets **ported** vacuum from the Dual CTO valve.
+
+| TBI port | Vacuum | Goes to | Notes |
+|---|---|---|---|
+| **A** / **AD** | Ported | Dual CTO valve, tee to distributor advance | Text says "CTO valve gets vacuum from port A" and "distributor vacuum is teed into the line from port AD to the CTO valve". The schematic shows one ported line feeding both, so A and AD are most likely the same port **[inferred from schematic; confirm the casting]** |
+| **C** | Manifold (full-time) | PCV line (3/8" port), canister purge teed in | |
+| **FD** | Manifold | MAP sensor only | Rear of TBI; no tees; 12" max. **[OCR?]** "FD" could be a misread of "PD"/"FP" |
+
+### Dual CTO valve
+
+![CTO valve vacuum connections](images/howell-cto-valve.png)
+
+Threaded end goes into an **intake manifold coolant passage** (coolant-temperature-switched). Five ports:
+
+| Row | Port | Connection |
 |---|---|---|
-| **A** | Dual CTO valve | Per text: "CTO valve gets vacuum from port A" |
-| **AD** | Distributor vacuum advance | Distributor line is tee'd into the line "from port AD to the CTO valve". **[OCR?]** The text mixes "A" and "AD"; they may be the same port or two ports. Not resolvable from text. The schematic shows the CTO routing |
-| **C** | PCV line (3/8" port), full-time vacuum | Evap purge signal is tee'd into this PCV line |
-| **FD** | MAP sensor only | Rear of TBI; no tees; 12" max. **[OCR?]** "FD" could be a misread of "PD"/"FP"; the rear/right-rear location matches the MAP tap |
+| Top | Left | Ported vacuum (in) |
+| Top | Right | **EGR** |
+| Bottom | Left (nearest threads) | Filter to atmosphere |
+| Bottom | Middle | Canister purge control (to canister PURGE SIGNAL) |
+| Bottom | Right | Ported vacuum (in) |
 
 Other connections:
 
-- Purge signal from canister goes to the Dual CTO valve on the engine (tee'd into the PCV line from port C, see above).
 - Fuel tank vent line to the canister is already in place. The canister's last vent (the old carburetor bowl vent) is **plugged or capped**. Canister sits under the washer bottle and has 4 vent tubes.
 - EGR valve vacuum comes from the Dual CTO valve.
 - Dual CTO valve is for CA-legal JP-1 kits; earlier Jeeps without one need OEM PN J3238932 (also Standard PN PVS61). Non-CA kits may use the stock CTO system or eliminate it, and some earlier non-emission setups may run better with **manifold** vacuum to the distributor advance.
@@ -122,7 +143,20 @@ Other connections:
 
 ### Dura-Spark / computer-controlled-carb harness (models with feedback carb)
 
-Non-computer-carb Jeeps are already wired directly from distributor to module and skip this part. For 1981-91 Dura-Spark Jeeps, the PDF has a wiring diagram on p.12 (image only, not in the text). Text notes:
+Non-computer-carb Jeeps are already wired directly from distributor to module and skip this part. For 1981-91 Dura-Spark Jeeps:
+
+![Dura-Spark wiring](images/howell-duraspark-wiring.png)
+
+| From | Wire | To Dura-Spark module |
+|---|---|---|
+| Coil **negative** | **Green** | Green |
+| Distributor pickup | **Black** | Black |
+| Distributor pickup | **Purple** | Purple |
+| Distributor pickup | **Orange** or **light green/black** | Orange / light green-black |
+
+Two further module wires (top right of the diagram) are unlabelled. The Howell harness tach lead (white) also goes to coil negative (see Engine side).
+
+Text notes:
 
 - Remove the old carb computer and its harness; three wires stay on the engine harness plus manifold heater relay wiring: coolant temp sender (purple, left rear of valve cover), manifold heater (pink), manifold heater switch (light green-black).
 - Locations are numbered on the back of the old computer connector (remove the black retainer clip). Wire **47** (light green-black, orange on some) is cut and spliced to **59** (orange) at/near the main harness junction. Wire **18** (purple) is cut and spliced to the supplied ignition-module jumper wire. Some models need a direct splice at the module connector (purple). Earlier Jeeps may lack the numbered connector, the same colors, or the Dura-Spark module connector.
